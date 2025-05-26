@@ -1,0 +1,8 @@
+pdfplumber
+langchain
+openai
+hnswlib
+numpy
+pandas
+openpyxl
+python-dotenv

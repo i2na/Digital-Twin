@@ -1,0 +1,29 @@
+# ▶ Python
+__pycache__/
+
+# ▶ 환경 설정
+.env
+*.env
+
+# ▶ 가상환경
+.venv/
+venv/
+ENV/
+env/
+
+# ▶ 에디터 & OS 파일
+.vscode/
+.DS_Store
+
+# ▶ 프로젝트 아웃풋
+# 자동 생성된 중간산출물 제외
+chunks/
+chunks_temp/
+embeddings/
+extracted_texts/
+vector_db/
+
+# ▶ 파일 기반 데이터
+files/building_info.json
+files/energyplus_input_template.xlsx
+files/building_info.xlsx
