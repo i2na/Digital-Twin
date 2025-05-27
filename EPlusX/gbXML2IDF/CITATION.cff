@@ -1,0 +1,26 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: gbXML2IDF
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Perera
+    family-names: Udara Sachinthana
+    email: mail.sachinthana@gmail.com
+    affiliation: University of Moratuwa
+    orcid: 'https://orcid.org/0000-0002-3585-0940'
+repository-code: 'https://github.com/Udaragithub/gbXML2IDF'
+abstract: >-
+  This is a python-based script written to convert
+  gbXML(BIM) file to an IDF(EnergyPlus) file.
+keywords:
+  - gbxml
+  - bim
+  - energyplus
+license: MIT
+version: '1'
+date-released: '2024-05-01'

@@ -1,0 +1,576 @@
+{
+  "Uuid": "400ddce6-af02-4fb0-87c4-86a577f03589",
+  "IsCustomNode": false,
+  "Description": "This dynamo graph can be used for the conversion of revit files into energyplus supported IDF file. After the conversion it is recomended to use IDF editor and SaveAs the file.",
+  "Name": "01. Revit2IDF_v2",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [
+    {
+      "Id": "1a20cf653f414e0dbb6379152cfc0795",
+      "Name": "Working folder",
+      "Type": "string",
+      "Type2": "string",
+      "Value": "D:\\MSc Analysis\\dynamotest2",
+      "Description": "Allows you to select a directory on the system and returns its path",
+      "SelectedIndex": 0
+    },
+    {
+      "Id": "303862c6e57a4691a074edee47f82922",
+      "Name": "File Path",
+      "Type": "string",
+      "Type2": "string",
+      "Value": "..\\..\\..\\Havelock City\\Weather Files\\LKA_CP_Kandy.434440_TMYx.epw",
+      "Description": "Allows you to select a file on the system and returns its file path",
+      "SelectedIndex": 0
+    },
+    {
+      "Id": "ccd36cba21ca49a58a760f177dbc7df9",
+      "Name": "Schedule default",
+      "Type": "string",
+      "Type2": "string",
+      "Value": "..\\..\\..\\..\\..\\MSc- Analysis\\test\\test env 3\\IDF_template_Schedules.idf",
+      "Description": "Allows you to select a file on the system and returns its file path",
+      "SelectedIndex": 0
+    },
+    {
+      "Id": "e1d55ff1d6824efcbf322cd77ea25bd9",
+      "Name": "Design Option",
+      "Type": "string",
+      "Type2": "string",
+      "Value": "HVLK",
+      "Description": "Creates a string",
+      "SelectedIndex": 0
+    }
+  ],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "CoreNodeModels.Input.Directory, CoreNodeModels",
+      "Id": "1a20cf653f414e0dbb6379152cfc0795",
+      "NodeType": "ExtensionNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "ad5178e08d9f417994fd95277ba3a1dd",
+          "Name": "",
+          "Description": "Directory path",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows you to select a directory on the system and returns its path",
+      "HintPath": "D:\\MSc Analysis\\dynamotest2",
+      "InputValue": "D:\\MSc Analysis\\dynamotest2"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.Filename, CoreNodeModels",
+      "Id": "303862c6e57a4691a074edee47f82922",
+      "NodeType": "ExtensionNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "0927c4e9706943088f7ac9d5a59706ad",
+          "Name": "",
+          "Description": "File Path",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows you to select a file on the system and returns its file path",
+      "HintPath": "D:\\One Drive Folder\\OneDrive - Sri Lanka Institute of Information Technology\\Personal\\MSc\\BIM-Energy\\Havelock City\\Weather Files\\LKA_CP_Kandy.434440_TMYx.epw",
+      "InputValue": "..\\..\\..\\Havelock City\\Weather Files\\LKA_CP_Kandy.434440_TMYx.epw"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.Filename, CoreNodeModels",
+      "Id": "ccd36cba21ca49a58a760f177dbc7df9",
+      "NodeType": "ExtensionNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "57a2f24322924e78b7157ae51742d9a2",
+          "Name": "",
+          "Description": "File Path",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows you to select a file on the system and returns its file path",
+      "HintPath": "D:\\One Drive Folder\\OneDrive - Sri Lanka Institute of Information Technology\\Personal\\MSc- Analysis\\test\\test env 3\\IDF_template_Schedules.idf",
+      "InputValue": "..\\..\\..\\..\\..\\MSc- Analysis\\test\\test env 3\\IDF_template_Schedules.idf"
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "Code": "#Code prepared by Udara Sachinthana . Contact - mail.sachinthana@gmail.com for more details\r\n\r\n# Load the Python Standard and DesignScript Libraries\r\nimport sys\r\nimport clr\r\nimport os\r\nimport shutil\r\n\r\n\r\nclr.AddReference('ProtoGeometry')\r\nfrom Autodesk.DesignScript.Geometry import *\r\nsys.path.append(r\"C:\\Users\\User\\AppData\\Local\\python-3.9.12-embed-amd64\\Lib\\site-packages\")\r\nfrom eppy import modeleditor\r\nfrom eppy.modeleditor import IDF\r\n# Last updated 05/02/2024\r\n# Converted to a python function 11/11/2023\r\n# Need to fix ardiabatic surface error\r\n# Mapped occupancy, lighting, equipment schedules with default schedules in schedules files \r\n# Need to fix error in mapping complex geometries\r\n\r\nfrom lxml import etree\r\nimport xgbxml\r\nfrom eppy import modeleditor\r\nfrom eppy.modeleditor import IDF\r\n\r\ndef convertor(workdir,iddfile,gbxmlfile,idfsch,idftemp):\r\n\r\n    #Code starts here :)\r\n    parser=xgbxml.get_parser('0.37')\r\n    tree=etree.parse(gbxmlfile, parser)\r\n    gbxml=tree.getroot()\r\n    \r\n    #==================General building data=================================================\r\n    \r\n    #\"In the current version, the translator only supports translation of building surfaces,construction,materials and schedules.\"\r\n    \r\n    #===========Campus Translator to convert surfaces to idf format============================\r\n    \r\n    idf_building_surfaces=[]\r\n    idf_shading_surface=[]\r\n    idf_fenestration_surfaces=[]\r\n    \r\n    for surface in gbxml.Campus.Surfaces:\r\n        \r\n        #================================BuildingSurface:Detailed================================\r\n        if surface.surfaceType!='Shade': #Shadings are considered as seperate surfaces\r\n            \r\n            surface_id=surface.id\r\n            surface_type='Wall' if surface.surfaceType=='InteriorWall' or surface.surfaceType=='ExteriorWall' else 'Floor' if surface.surfaceType=='SlabOnGrade' or surface.surfaceType=='RaisedFloor' or surface.surfaceType=='InteriorFloor' else 'Roof' if surface.surfaceType=='Roof' else 'adiabatic'\r\n            construction_name=surface.constructionIdRef\r\n            sun='NoSun' if surface.surfaceType=='InteriorWall' or surface.surfaceType=='Ceiling' or surface.surfaceType=='RaisedFloor' else 'SunExposed' if surface.surfaceType=='Floor' else 'SunExposed'\r\n            wind='NoWind' if surface.surfaceType=='InteriorWall' or surface.surfaceType=='Ceiling' or surface.surfaceType=='RaisedFloor' else 'WindExposed' if surface.surfaceType=='Floor' else 'WindExposed'\r\n            adj_zone=surface.AdjacentSpaceIds.spaceIdRef\r\n            \r\n            try:\r\n                adiabatic_floor=surface.CADObjectId.text[7:16]\r\n                adiabatic_wall=surface.CADObjectId.text[12:21]\r\n            except KeyError:\r\n                continue\r\n\r\n            \r\n            out_boundary='Adiabatic' if adiabatic_floor=='Adiabatic' or adiabatic_wall=='Adiabatic' else 'Outdoors'if surface.surfaceType=='ExteriorWall' or surface.surfaceType=='Roof' else 'Zone' if surface.surfaceType=='InteriorWall' or surface.surfaceType=='Ceiling' or surface.surfaceType=='InteriorFloor' or surface.surfaceType=='RaisedFloor' or surface.surfaceType=='Air'  else 'Ground' if surface.surfaceType=='SlabOnGrade' else None\r\n            if out_boundary is None:\r\n                raise TypeError(\"Incompatible surface\")\r\n            \r\n            out_boundary_obj='' if adiabatic_floor=='Adiabatic' or adiabatic_wall=='Adiabatic' else adj_zone[-1] if surface.surfaceType=='InteriorWall' or surface.surfaceType=='Ceiling' or surface.surfaceType=='RaisedFloor' or surface.surfaceType=='InteriorFloor' else ''\r\n            no_vertice=surface.PlanarGeometry.PolyLoop.get_coordinates()\r\n            num_vertices=len(no_vertice)\r\n            vertices=[]\r\n            for i in no_vertice:\r\n                [vertices.append(j) for j in i]\r\n            vertices_str=str(vertices).replace(\"[\", \"\").replace(\"]\", \"\")\r\n            \r\n    \r\n    \r\n            idf_surface = f\"\"\"\r\n            BuildingSurface:Detailed,\r\n                {surface_id},          !- Name\r\n                {surface_type},        !- Surface Type\r\n                {construction_name},   !- Construction Name\r\n                {adj_zone[0]},           !- Zone Name\r\n                {out_boundary},           !- Outside Boundary Condition\r\n                {out_boundary_obj},     !- Outside Boundary Condition Object\r\n                {sun},                      !- Sun Exposure\r\n                {wind},                      !- Wind Exposure\r\n                0,                      !- View Factor to Ground\r\n                {num_vertices},        !- Number of Vertices\r\n                {vertices_str};        !- Vertex List\r\n        \"\"\"\r\n            idf_building_surfaces.append(idf_surface)\r\n    \r\n    \r\n            #==============================Fenistration:Surface:Detailed==============================\r\n            for opening in surface.Openings:\r\n    \r\n                opening_id=opening.id\r\n                window_construction=opening.windowTypeIdRef\r\n                opening_type='Window' if opening.openingType=='FixedWindow' or opening.openingType=='OperableWindow' else 'Door'\r\n                no_vertice=opening.PlanarGeometry.PolyLoop.get_coordinates()\r\n                num_vertices=len(no_vertice)\r\n                vertices=[]\r\n                for i in no_vertice:\r\n                    [vertices.append(j) for j in i]\r\n                vertices_str=str(vertices).replace(\"[\", \"\").replace(\"]\", \"\")\r\n    \r\n                idf_fenestration = f\"\"\"\r\n                FenestrationSurface:Detailed,\r\n                    {opening_id},          !- Name  \r\n                    {opening_type},        !- Surface Type\r\n                    {window_construction}, !- Construction Name\r\n                    {surface_id},          !- Building Surface Name\r\n                    ,                 !- Outside Boundary Condition \r\n                    autocalculate,                !- View Factor to Ground\r\n                    ,        !- Shading control name\r\n                    ,                       !- Frame and Divider Name\r\n                    ,                       !- Multiplier\r\n                    {num_vertices},                       !- Number of Vertices\r\n                    {vertices_str};        !- Vertex List\r\n            \"\"\"\t\r\n                idf_fenestration_surfaces.append(idf_fenestration)  \r\n        \r\n        #================================ Shading:Building:Detailed ================================\r\n        else:\r\n            surface_id=surface.id\r\n            no_vertice=surface.PlanarGeometry.PolyLoop.get_coordinates()\r\n            num_vertices=len(no_vertice)\r\n            vertices=[]\r\n            for i in no_vertice:\r\n                [vertices.append(j) for j in i]\r\n            vertices_str=str(vertices).replace(\"[\", \"\").replace(\"]\", \"\")\r\n            \r\n    \r\n    \r\n            idf_shading = f\"\"\"\r\n            Shading:Building:Detailed,\r\n                {surface_id},          !- Name\r\n                ,        !- Transmittance Schedule Name\r\n                {num_vertices},   !- Number of vertices\r\n                {vertices_str};           !- Vertices\r\n    \r\n        \"\"\"\r\n            idf_shading_surface.append(idf_shading)\r\n    \r\n    #============================== Constructions ===========================================\r\n    \r\n    # Define lists to store IDF strings\r\n    \r\n    idf_constructions = []\r\n    \r\n    \r\n    for construction in gbxml.Constructions:\r\n        # Get the construction name and material layers\r\n        construction_name = construction.get(\"id\")\r\n        layer_id=construction.LayerId.layerIdRef\r\n        material_layers = []\r\n        for layer in gbxml.Layers:\r\n            if layer.get(\"id\")==layer_id:\r\n                layers=layer.MaterialIds.materialIdRef\r\n        print(layers)\r\n        # Define the construction string\r\n        \r\n        if len(layers)!=1:\r\n            construction_string = f\"\"\"\r\n            Construction,\r\n                {construction_name}, !- Name\r\n                {str(layers).replace(\"(\", \"\").replace(\")\", \"\").replace(\"'\",'')}; !- Outside Layer\r\n            \"\"\"\r\n        else:\r\n            construction_string = f\"\"\"\r\n            Construction,\r\n                {construction_name}, !- Name\r\n                {str(layers).replace(\"(\", \"\").replace(\",)\", \"\").replace(\"'\",'')}; !- Outside Layer\r\n            \"\"\"\r\n                \r\n        # Append the construction string to the list\r\n        idf_constructions.append(construction_string)    \r\n    \r\n    for window in gbxml.WindowTypes:\r\n        # Get the construction name and material layers\r\n        window_name = window.get(\"id\")\r\n        \r\n        # Define the construction string for windows\r\n        construction_window = f\"\"\"\r\n        Construction,\r\n            {window_name}, !- Name\r\n            {window.Name.text}; !- Outside Layer\r\n        \"\"\"\r\n        \r\n        # Append the construction string to the list\r\n        idf_constructions.append(construction_window)      \r\n    #================================= Materials ============================================\r\n    idf_materials = []\r\n    material_data={}\r\n    \r\n    for material in gbxml.Materials:\r\n        if material.Name.text!='Air space':\r\n            material_id=material.get(\"id\")\r\n            material_name=material.Name.text\r\n            \r\n            try:\r\n                material_thermal_conductivity=material.Conductivity.text\r\n                \r\n                material_thickness=material.Thickness.text\r\n                material_density=material.Density.text\r\n                material_sh=material.SpecificHeat.text\r\n            except KeyError:\r\n                continue\r\n            \r\n            idf_material = f\"\"\"\r\n            Material,\r\n                {material_id}, !- Name\r\n                MediumRough, !- Roughness\r\n                {material_thickness}, !- Thickness (m)\r\n                {material_thermal_conductivity}, !- Thermal Conductivity (material_thermal_conductivity)\r\n                {material_density}, !- Density (material_density)\r\n                {material_sh}, !- Specific Heat (material_sh)\r\n                0.9, !- Thermal Absorptance\r\n                0.7, !- Solar Absorptance\r\n                0.7; !- Visible Absorptance\r\n            \"\"\"\r\n        elif material.Name.text=='Air space':\r\n            material_id=material.get(\"id\")\r\n            material_name=material.Name.text\r\n            material_R_value=material.R_value.text\r\n            idf_material = f\"\"\"\r\n                \r\n                Material:NoMass,\r\n                    {material_id}, !- Name\r\n                    Smooth, !- Roughness\r\n                    {material_R_value}; ! Thermal Resistance\r\n                    \r\n                \"\"\"\r\n        \r\n        else: raise ValueError\r\n        material_data[material_id]={'Material ID' : material_id,\r\n                                    'Material Name':material_name\r\n\r\n        }\r\n        idf_materials.append(idf_material)\r\n    \r\n    \r\n    #============================= WindowMaterial:SimpleGlazingSystem =========================\r\n    idf_window_materials = []\r\n    \r\n    for window in gbxml.WindowTypes:\r\n        win_mat_id=window.get(\"id\")\r\n        win_mat_name=window.Name.text\r\n        win_mat_u_value=window.U_value.text\r\n        win_mat_shgc=window.SolarHeatGainCoeffs[-1].text\r\n    \r\n        idf_window_material = f\"\"\"\r\n        WindowMaterial:SimpleGlazingSystem,\r\n            {win_mat_name}, !- Name\r\n            {win_mat_u_value}, !- U-Factor (win_mat.u_value)\r\n            {win_mat_shgc}, !- Solar Heat Gain Coefficient (win_mat.shgc)\r\n            0.9; !- Visible Transmittance\r\n        \"\"\"\r\n        idf_window_materials.append(idf_window_material)\r\n    \r\n    #=============================Schedules================================\r\n    schedule_data={}\r\n\r\n    for schedule in gbxml.Schedules:\r\n            schedule_id=schedule.get(\"id\")\r\n            schedule_name=schedule.Name.text\r\n            schedule_data[schedule_id]={'schedule id':schedule_id,\r\n                                        'schedule name':schedule_name\r\n\r\n            }\r\n\r\n    \r\n    #========================== Zone =============================================\r\n    idf_zones = []\r\n    space_data = {} # Initialize empty dictionary to store schedule and people data for each space\r\n    for space in gbxml.Campus.Building.Spaces: \r\n            zone_id=space.get(\"id\")\r\n            \r\n            idf_zone = f\"\"\"\r\n            Zone,\r\n                {zone_id}, !- Name\r\n                0, !- Direction of Relative North (zone.Name.text)\r\n                0, !- X Origin\r\n                0, !- Y Origin\r\n                0, !- Z Origin\r\n                1, !- Type\r\n                1, !- Multiplier\r\n                autocalculate, !- Ceiling Height (zone.CeilingHeight.text)\r\n                autocalculate, !- Volume\r\n                autocalculate, !- Floor Area\r\n                TARP, !- Zone Inside Convection Algorithm\r\n                ; !- Zone Outside Convection Algorithm\r\n            \"\"\"\r\n            idf_zones.append(idf_zone)\r\n            # Extract space ID\r\n        \r\n            \r\n            #============================ Extract additional data for each space ========================\r\n    \r\n            # Extract lighting schedule ID and density\r\n            lighting_schedule_id = space.lightScheduleIdRef\r\n            lighting_density = space.LightPowerPerArea.text\r\n        \r\n            # Extract equipment schedule ID and density\r\n            equipment_schedule_id = space.equipmentScheduleIdRef\r\n            equipment_density = space.EquipPowerPerArea.text\r\n        \r\n            # Extract people schedule ID, number of people, and total heat gain\r\n            people_schedule_id = space.peopleScheduleIdRef\r\n            people_schedule_name=schedule_data[people_schedule_id]['schedule name']\r\n            \r\n            num_people = float(space.PeopleNumber.text)\r\n            \r\n            heat_gain = space.PeopleHeatGains[0].text\r\n            \r\n            CAD_name=space.Name.text #Extract name assigned in BIM\r\n    \r\n            #extract other info\r\n            zone_name=\"aim0408\"\r\n            try:\r\n                conditionType=space.conditionType\r\n            except KeyError: \r\n                conditionType=\"Cooled\"\r\n            storeyid=space.buildingStoreyIdRef\r\n        \r\n            # Add data to dictionary for this space\r\n            space_data[zone_id] = {'Lighting Schedule ID': lighting_schedule_id,\r\n                                    'Lighting Density': lighting_density,\r\n                                    'Equipment Schedule ID': equipment_schedule_id,\r\n                                    'Equipment Density': equipment_density,\r\n                                    'People Schedule Name': people_schedule_name,\r\n                                    'Number of People': num_people,\r\n                                    'Total Heat Gain': heat_gain,\r\n\r\n                                    'Zone Name': zone_name,\r\n                                    'Condition Type': conditionType,\r\n                                    'CAD Name': CAD_name,\r\n                                    'storeyID': storeyid}\r\n    \r\n\r\n    #============================= ZoneData =================================\r\n\r\n    \r\n    #============================= People =================================\r\n    idf_peoples= []\r\n    for spaceid,values in space_data.items():\r\n        \r\n        if values['Number of People'] != 0:\r\n            idf_people= f\"\"\"\r\n            People,\r\n            {spaceid+'people'},  !- Name\r\n            {spaceid}, !- Zone or ZoneList Name\r\n            {values['People Schedule Name']+'occupancy_sch'}, !- Number of People Schedule Name\r\n            People, !- Number of People Calculation Method\r\n            {values['Number of People']}, !- Number of People\r\n            , !- People per Zone Floor Area\r\n            , !- Zone Floor Area per Person\r\n            0.3, !- Fraction Radiant\r\n            autocalculate, !- Sensible Heat Fraction\r\n            Activity_Sch, !- Activity Level Schedule Name\r\n            , !- Carbon Dioxide Generation Rate (m3/s-W)\r\n            , !- Enable ASHRAE 55 Comfort Warnings\r\n            {'ZoneAveraged'.replace(\"'\",\"\")}, !- Mean Radiant Temperature Calculation Type\r\n            , !- Surface Name/Angle Factor List Name\r\n            , !- Work Efficiency Schedule Name\r\n            , !- Clothing Insulation Calculation Method\r\n            , !- Clothing Insulation Calculation Method Schedule Name\r\n            , !- Clothing Insulation Schedule Name\r\n            , !- Air Velocity Schedule Name\r\n            {'AdaptiveASH55'.replace(\"'\",\"\")}, !-Thermal Comfort Model 1 Type\r\n            {'AdaptiveCEN15251'.replace(\"'\",\"\")}; !- Thermal Comfort Model 2 Type\r\n    \"\"\"\r\n            idf_peoples.append(idf_people)\r\n    \r\n    #============================= Lights =================================\r\n    idf_lights= []\r\n    for spaceid,values in space_data.items():\r\n        \r\n        if values['Lighting Density'] != 0:\r\n            idf_light= f\"\"\"\r\n            Lights,\r\n            {spaceid+'light'},  !- Name\r\n            {spaceid}, !- Zone or ZoneList Name\r\n            {values['People Schedule Name']+'lighting_sch'}, !- Schedule Name\r\n            {'Watts/Area'.replace(\"'\",\"\")}, !- Design Level Calculation Method\r\n            , !- Lighting Level (W/m2)\r\n            {values['Lighting Density']}, !- Watts per Zone Floor Area (W/m2)\r\n            , !- Watts per Person (W/person)\r\n            0, !- Return Air Fraction\r\n            0.32, !- Fraction Radiant\r\n            0.23, !- Fraction Visible\r\n            0.45, !- Fraction Replaceable\r\n            GeneralLights; !- End-Use Subcategory\r\n    \"\"\"\r\n            idf_lights.append(idf_light)\r\n    \r\n    #============================= Electric Equipment =================================\r\n    idf_equipments= []\r\n    for spaceid,values in space_data.items():\r\n            \r\n            if values['Equipment Density'] != 0:\r\n                idf_equipment= f\"\"\"\r\n                ElectricEquipment,\r\n                {spaceid+'equipment'},  !- Name\r\n                {spaceid}, !- Zone or ZoneList Name\r\n                {values['People Schedule Name']+'equipment_sch'}, !- Schedule Name\r\n                {'Watts/Area'.replace(\"'\",\"\")}, !- Design Level Calculation Method\r\n                , !- Lighting Level (W/m2)\r\n                {values['Equipment Density']}, !- Watts per Zone Floor Area (W/m2)\r\n                , !- Watts per Person (W/person)\r\n                0.3, !- Fraction Radiant\r\n                0.2, !- Fraction Visible\r\n            0.0, !- Fraction Lost\r\n                General; !- End-Use Subcategory\r\n        \"\"\"\r\n                idf_equipments.append(idf_equipment)\r\n    \r\n    #=================== HVAC system ========================\r\n    idf_vent1=[]\r\n    idf_vent2=[]\r\n\r\n    for spaceid,values in space_data.items():\r\n        idf_air2= f\"\"\"\r\n        ZoneInfiltration:DesignFlowRate,\r\n            {spaceid+'infil'},   !- Name\r\n            {spaceid}, !- Zone Name\r\n            24X7_on, !- Schedule Name\r\n            AirChanges/Hour,      !- Design Flow Rate Calculation Method\r\n            ,       !- Design Flow Rate \r\n            ,               !- Flow per Zone Floor Area \r\n            ,               !- Flow per Exterior Surface Area\r\n            0.5,               !- Air Changes per Hour\r\n            0.6060000    ,  !- Constant Term Coefficient\r\n            3.6359996E-02,  !- Temperature Term Coefficient\r\n            0.1177165    ,  !- Velocity Term Coefficient\r\n            0.0000000E+00;  !- Velocity Squared Term Coefficient\r\n        \"\"\"\r\n        idf_vent2.append(idf_air2)\r\n    \r\n    for spaceid,values in space_data.items():\r\n        \r\n        if values['Condition Type']==\"HeatedAndCooled\" or values['Condition Type']==\"Cooled\" :\r\n\r\n            idf_air1= f\"\"\"\r\n            ZoneVentilation:DesignFlowRate,\r\n            {spaceid+'vent'},        !-Name\r\n            {spaceid},                !- Zone Name\r\n            24X7_on,          !- SCHEDULE Name\r\n            AirChanges/Hour,               !- Design Volume Flow Rate calculation method\r\n            ,                  !- Design Volume Flow Rate \r\n            ,                        !- Volume Flow Rate per area \r\n            ,                        !- Volume Flow Rate per person \r\n            2,                        !- Air Changes Per Hour\r\n            Natural,                  !- Ventilation Type\r\n            67.,                     !- Fan Pressure Rise\r\n            .7,                      !- Fan Total Efficiency\r\n            1,                       !- Constant Term Coefficient\r\n            0,                       !- Temperature Term Coefficient\r\n            0,                       !- Velocity Term Coefficient\r\n            0,                       !- Velocity Squared Term Coefficient\r\n            21,                        !- Minimum Indoor Temperature \r\n            ,           !- Minimum Indoor Temperature Schedule Name\r\n            24,                        !- Maximum Indoor Temperature \r\n            ,           !- Maximum Indoor Temperature Schedule Name\r\n            ,                        !- Delta Temperature \r\n            ,               !- Delta Temperature Schedule Name\r\n            ,                        !- Minimum Outdoor Temperature \r\n            ,          !- Minimum Outdoor Temperature Schedule Name\r\n            ,                        !- Maximum Outdoor Temperature\r\n            ,          !- Maximum Outdoor Temperature Schedule Name\r\n            40;                      !- Maximum WindSpeed \r\n        \r\n        \"\"\"\t\r\n            idf_vent1.append(idf_air1)\r\n    \r\n    \r\n    \r\n    idf_hvacs=[]\r\n    idf_ventobjs=[]\r\n    for spaceid,values in space_data.items():\r\n        # if values['Condition Type']==\"HeatedAndCooled\" or values['Condition Type']==\"Cooled\" :\r\n        #     idf_hvac= f\"\"\"\r\n        #     HVACTemplate:Zone:IdealLoadsAirSystem,\r\n        #     {spaceid}, !- Zone Name\r\n        #     {values['People Schedule Name']+'DualSP'}, !- Template Thermostat Name\r\n        #     24X7_on, !- System Availability Schedule Name\r\n        #     50, !- Maximum Heating Supply Air Temperature \r\n        #     13, !- Minimum Cooling Supply Air Temperature \r\n        #     0.0156, !- Maximum Heating Supply Air Humidity Ratio \r\n        #     0.0077, !- Minimum Cooling Supply Air Humidity Ratio \r\n        #     NoLimit, !- Heating Limit\r\n        #     autocalculate, !- Maximum Heating Air Flow Rate \r\n        #     autocalculate, !- Maximum Sensible Heating Capacity\r\n        #     LimitFlowRateAndCapacity, !- Cooling Limit\r\n        #     autocalculate, !- Maximum Cooling Air Flow Rate \r\n        #     autocalculate, !- Maximum Total Cooling Capacity \r\n        #     24X7_on, !- Heating Availability Schedule Name\r\n        #     24X7_on, !- Cooling Availability Schedule Name\r\n        #     None, !- Dehumidification Control Type\r\n        #     0.7, !- Cooling Sensible Heat Ratio \r\n        #     60, !- Dehumidification Setpoint\r\n        #     None,!-Dehumification Control Type\r\n        #     , !- Humdification Setpoint\r\n        #     DetailedSpecification, !- Outdoor Air Method\r\n        #     , !- Outdoor Air Flow Rate per Person (m3/s-person)\r\n        #     , !- Outdoor Air Flow Rate per Zone Floor Area (m3/s-m2)\r\n        #     , !- Outdoor Air Flow Rate per Zone (m3/s)\r\n        #     , !- Design Specification Outdoor Air Object Name\r\n        #     None, !- Demand Controlled Ventilation Type\r\n        #     NoEconomizer, !- Outdoor Air Economizer Type\r\n        #     None, !- Heat Recovery Type\r\n        #     0.7, !- Sensible Heat Recovery Effectiveness (dimensionless)\r\n        #     0.65; !- Latent Heat Recovery Effectiveness (dimensionless)\r\n            \r\n        #     \"\"\"\r\n        #     idf_hvacs.append(idf_hvac)\r\n        \r\n        if values['Condition Type']==\"HeatedAndCooled\" or values['Condition Type']==\"Cooled\": \r\n            idf_hvac= f\"\"\"\r\n            HVACTemplate:System:Unitary,\r\n            {spaceid+'AHU'},                   !- Air Handling System Name\r\n            24X7_on,    !- System Availability Schedule\r\n            {spaceid},               !- Control Zone Name or Thermostat Location\r\n            autosize,                !- Supply Fan Max Flow Rate \r\n            24X7_on,       !- Supply Fan Operating Mode Schedule\r\n            .7,                      !- Supply Fan Total Efficiency\r\n            600,                     !- Supply Fan Delta Pressure\r\n            .9,                      !- Supply Fan Motor Efficiency\r\n            1,                       !- Supply Fan Motor in Air Stream Fraction\r\n            SingleSpeedDX,          !- Cooling Coil Type\r\n            {values['People Schedule Name']+'occupancy_sch'},    !- Cooling Coil Availability Schedule\r\n            14.0,                    !- Cooling Design Supply Air Temperature\r\n            autosize,                !- Cooling Coil Gross Rated Total Capacity\r\n            autosize,                !- Cooling Coil Gross Rated Sensible Heat Ratio\r\n            3,                       !- Cooling Coil Gross Rated COP\r\n            Electric,                     !- Heating Coil Type\r\n            {values['People Schedule Name']+'occupancy_sch'},    !- Heating Coil Availability Schedule\r\n            50.0,                    !- Heating Design Supply Air Temperature \r\n            autosize,                !- Heating Coil Capacity\r\n            .8,                      !- Gas Heating Coil Efficiency\r\n            0,                       !- Gas Heating Coil Parasitic Electric Load \r\n            autosize,                !- Maximum Outdoor air Flow Rate\r\n            autosize,                !- Minimum Outdoor air Flow Rate \r\n            ,                        !- Minimum Outdoor air Schedule Name\r\n            NoEconomizer,            !- Economizer Type\r\n            NoLockout,               !- Economizer Lockout\r\n            ,                        !- Economizer Upper Temperature Limit\r\n            ,                        !- Economizer Lower Temperature Limit \r\n            ,                        !- Economizer Upper Enthalpy Limit\r\n            ,                        !- Economizer Maximum Limit Dewpoint Temperature \r\n            ,                        !- Supply Plenum Name\r\n            ,                        !- Return Plenum Name\r\n            BlowThrough,             !- Supply Fan Placement\r\n            CycleOnAny,              !- Night Cycle Control\r\n            ,                        !- Night Cycle Control Zone Name\r\n            None,                    !- Heat Recovery Type\r\n            ,                        !- Sensible Heat Recovery Effectiveness\r\n            ,                        !- Latent Heat Recovery Effectiveness\r\n            None,                    !- Dehumidification Control Type\r\n            60,                      !- Dehumidification Setpoint \r\n            ,           !- Humidifier Type\r\n            ,                        !- Humidifier Availability Schedule\r\n            0.000001,                !- Humidifier Rated Capacity \r\n            2690,                    !- Humidifier Rated Electric Power \r\n            ,               !- Humidifier Control Zone Name\r\n            30,                      !- Humidifier Setpoint\r\n            No,                      !- Return Fan\r\n            0.7,                     !- Return Fan Total Efficiency\r\n            300,                     !- Return Fan Delta Pressure \r\n            0.9,                     !- Return Fan Motor Efficiency\r\n            1.0;                     !- Return Fan Motor in Air Stream Fraction\r\n\r\n\r\n            \"\"\"\r\n            idf_ventobj= f\"\"\"\r\n            HVACTemplate:Zone:Unitary,\r\n            {spaceid},                !- Zone Name\r\n            {spaceid+'AHU'},          !- Template Unitary System Name\r\n            {values['People Schedule Name']+'DualSP'},               !- Template Thermostat Name\r\n            autosize,                !- Supply Air Maximum Flow Rate \r\n            ,                        !- Zone Heating Sizing Factor\r\n            ,                        !- Zone Cooling Sizing Factor\r\n            flow/person,             !- Outdoor Air Method\r\n            0.00944,                 !- Outdoor Air Flow Rate per Person \r\n            0.0,               !- Outdoor Air Flow Rate per Zone Floor Area \r\n            0.0,                     !- Outdoor Air Flow Rate per Zone \r\n            ,                        !- Supply Plenum Name\r\n            ,                        !- Return Plenum Name\r\n            None,                    !- Baseboard Heating Type\r\n            ,                        !- Baseboard Heating Availability Schedule Name\r\n            Autosize,                !- Baseboard Heating Capacity \r\n            SystemSupplyAirTemperature, !- Zone Cooling Design Supply Air\r\n            ,            !- Zone Cooling Design Supply Air Temperature \r\n            ,            !- Zone Cooling Design Supply Air Temperature Difference \r\n            SystemSupplyAirTemperature, !- Zone Heating Design Supply Air . . . Input Method\r\n            ,            !- Zone Heating Design Supply Air Temperature \r\n            ,            !- Zone Heating Design Supply Air Temperature Difference \r\n            ,            !- Design Specification Outdoor Air Object Name\r\n            ;            !- Design Specification Zone Air Distribution Object Name\r\n\r\n\r\n            \"\"\"\r\n            \r\n            idf_hvacs.append(idf_hvac)\r\n            idf_ventobjs.append(idf_ventobj)\r\n\r\n\r\n            \r\n    \r\n    \r\n    #================== open the template file and write the new file ========================\r\n    \r\n    with open(workdir+'\\eplusrevit_temp.idf', \"w\") as f:\r\n        # Read the original file and write its contents to the new file\r\n        \r\n        \r\n        \r\n        with open(idftemp, \"r\") as tempfile:\r\n            f.write(tempfile.read())\r\n            tempfile.close()\r\n        with open(idfsch, \"r\") as tempfile:\r\n            f.write(tempfile.read())\r\n            tempfile.close()\r\n        for idf_construction in idf_constructions:\r\n            f.write(idf_construction + '\\n')\r\n        for idf_surface in idf_building_surfaces:\r\n            f.write(idf_surface + '\\n')\r\n        for idf_shading in idf_shading_surface:\r\n            f.write(idf_shading + '\\n')\r\n        for idf_fenestration in idf_fenestration_surfaces:\r\n            f.write(idf_fenestration + '\\n')\r\n        for idf_material in idf_materials:\r\n            f.write(idf_material + '\\n')\r\n        for idf_window_material in idf_window_materials:\r\n            f.write(idf_window_material + '\\n')\r\n        for idf_zone in idf_zones:\r\n            f.write(idf_zone + '\\n')\r\n        for idf_people in idf_peoples:\r\n            f.write(idf_people + '\\n')\r\n        for idf_light in idf_lights:\r\n            f.write(idf_light + '\\n')\r\n        for idf_equipment in idf_equipments:\r\n            f.write(idf_equipment + '\\n')\r\n        for idf_air in idf_vent1:\r\n            f.write(idf_air + '\\n')\r\n        for idf_air in idf_vent2:\r\n            f.write(idf_air + '\\n')\r\n        for idf_hvac in idf_hvacs:\r\n            f.write(idf_hvac + '\\n')\r\n        for idf_ventobj in idf_ventobjs:\r\n            f.write(idf_ventobj + '\\n')           \r\n    f.close()\r\n\r\n\r\n    IDF.setiddname(iddfile)\r\n    idfpath = workdir+'\\eplusrevit_temp.idf'\r\n    print(idfpath)\r\n    new_idf_path = workdir+'\\eplusrevit.idf'\r\n    idf =IDF(idfpath)\r\n    idf.saveas(new_idf_path)\r\n\r\n\r\n\r\n    import csv\r\n\r\n    # Assuming you have the space_data dictionary defined\r\n\r\n    # Specify the desired order of columns\r\n    columns = ['zone_id', 'Lighting Schedule ID','Lighting Density', 'Equipment Schedule ID', 'Equipment Density',\r\n            'People Schedule Name', 'Number of People', 'Total Heat Gain',\r\n            'Zone Name', 'Condition Type', 'CAD Name', 'storeyID']\r\n\r\n    # Define the file name and open it in write mode\r\n    filename = workdir+'\\space_data.csv'\r\n    with open(filename, 'w', newline='') as csvfile:\r\n        writer = csv.DictWriter(csvfile, fieldnames=columns)\r\n\r\n        # Write the header row\r\n        writer.writeheader()\r\n\r\n        # Write the data rows\r\n        for zone_id, zone_data in space_data.items():\r\n            # Add the zone_id to the zone_data dictionary\r\n            zone_data['zone_id'] = zone_id\r\n            writer.writerow(zone_data)\r\n\r\n\r\n    #Assuming material_data dictionary defined\r\n    columns = ['Material ID','Material Name']\r\n    print(material_data)\r\n    # Define the file name and open it in write mode\r\n    filename = workdir+'\\material_data.csv'\r\n    with open(filename, 'w', newline='') as csvfile:\r\n        writer = csv.DictWriter(csvfile, fieldnames=columns)\r\n\r\n        # Write the header row\r\n        writer.writeheader()\r\n\r\n        # Write the data rows\r\n        for key, value in material_data.items():\r\n            # Add the zone_id to the zone_data dictionary\r\n            \r\n            writer.writerow(value)   \r\n \r\n\r\nif IN[0]==\"Success\":\r\n\r\n    workdir=IN[1]\r\n    iddfile=r\"C:\\EnergyPlusV8-9-0\\Energy+.idd\"\r\n    gbxmlfile=workdir+\"\\\\revit2gbxml.xml\"\r\n    idftemp=workdir+\"\\IDF_template.idf\"\r\n    idfsch=workdir+\"\\IDF_Schedules.idf\"\r\n    \r\n    convertor(workdir,iddfile,gbxmlfile,idfsch,idftemp)\r\n    OUT=\"Ok\"\r\n\r\n\r\n\r\n",
+      "Engine": "CPython3",
+      "EngineName": "CPython3",
+      "VariableInputPorts": true,
+      "Id": "72147589e1ea45f9a1ad909062762c26",
+      "NodeType": "PythonScriptNode",
+      "Inputs": [
+        {
+          "Id": "978a9db5996d4f5d8918fa9a6b153791",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "6778d394aa8145508ab83e894bfe8cba",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "e0099360a1e6453cb583938a46687d6a",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded Python script."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.StringInput, CoreNodeModels",
+      "Id": "e1d55ff1d6824efcbf322cd77ea25bd9",
+      "NodeType": "StringInputNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "913df13a10f644359cf3751cb684f213",
+          "Name": "",
+          "Description": "String",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Creates a string",
+      "InputValue": "HVLK"
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "Code": "import clr\r\nimport sys\r\n\r\nsys.path.append(r\"C:\\Users\\User\\AppData\\Local\\python-3.9.12-embed-amd64\\Lib\\site-packages\")\r\n\r\n# Import ToDSType(bool) extension method\r\nclr.AddReference(\"RevitNodes\")\r\nimport Revit\r\nclr.ImportExtensions(Revit.Elements)\r\n\r\n# Import geometry conversion extension methods\r\nclr.ImportExtensions(Revit.GeometryConversion)\r\n\r\n# Import DocumentManager and TransactionManager\r\nclr.AddReference(\"RevitServices\")\r\nimport RevitServices\r\nfrom RevitServices.Persistence import DocumentManager\r\nfrom RevitServices.Transactions import TransactionManager\r\n\r\n# Import RevitAPI\r\nclr.AddReference(\"RevitAPI\")\r\nimport Autodesk\r\nfrom Autodesk.Revit.DB import*\r\n\r\n# Imports Ilists module into python\r\nclr.AddReference(\"System\")\r\nfrom System.Collections.Generic import List as cList\r\nfrom lxml import etree\r\nimport xgbxml\r\nimport os\r\n\r\n\r\n\r\n#Inputs\r\nWorkingfolder=IN[0]\r\nFileName=\"revit2gbxml\"\r\n\r\n#===========================================================================\r\n#create gbxml file based on the model prepared in the document\r\n#get current document file\r\ndoc=DocumentManager.Instance.CurrentDBDocument\r\n\r\nopt=Analysis.EnergyAnalysisDetailModelOptions()\r\nopt.EnergyModelType=Analysis.EnergyModelType.SpatialElement\r\n\r\nTransactionManager.Instance.EnsureInTransaction(doc)\r\nmodel=Analysis.EnergyAnalysisDetailModel.Create(doc,opt)\r\nGBopt=GBXMLExportOptions()\r\nGBopt.ExportEnergyModelType=ExportEnergyModelType.BuildingElement\r\ndoc.Export(Workingfolder,FileName ,GBopt)\r\nTransactionManager.Instance.TransactionTaskDone()\r\n\r\n#=======================================================================\r\n\r\nOUT=\"Success\"",
+      "Engine": "CPython3",
+      "EngineName": "CPython3",
+      "VariableInputPorts": true,
+      "Id": "2e084a5570b34fb89977ce3c6f691bfa",
+      "NodeType": "PythonScriptNode",
+      "Inputs": [
+        {
+          "Id": "7506d8e01e2f477aa62af26694393044",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "c79bfffe87cc47e58c4d74da42ebbb5a",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded Python script."
+    },
+    {
+      "ConcreteType": "GenerativeDesign.Gate, GenerativeDesign.Dynamo.Nodes",
+      "InputValue": true,
+      "Id": "6275b04352544a2fa834f2c1bb2fa74e",
+      "NodeType": "ExtensionNode",
+      "Inputs": [
+        {
+          "Id": "7e9f097010224200931f90876332f8aa",
+          "Name": ">",
+          "Description": "Data to pass to a downstream node with gated controls.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "c4f5daecc69944ef98d0e03ec0c63970",
+          "Name": ">",
+          "Description": "Data",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Block data passing through this node to downstream nodes. Node returns the input data only if the node value is set to Open.  \r\n\r\nIn Generative Design workflows, this node should be used to control and block the behavior of nodes that will place elements in Revit"
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "Code": "# Load the Python Standard and DesignScript Libraries\r\nimport sys\r\nimport clr\r\nimport os\r\nimport shutil\r\n\r\n\r\nclr.AddReference('ProtoGeometry')\r\nfrom Autodesk.DesignScript.Geometry import *\r\nsys.path.append(r\"C:\\Users\\User\\AppData\\Local\\python-3.9.12-embed-amd64\\Lib\\site-packages\")\r\nfrom eppy import modeleditor\r\nfrom eppy.modeleditor import IDF\r\nos.chdir(IN[0])\r\n\r\niddfile = r\"C:\\EnergyPlus-8-9-0\\Energy+.idd\" # change this for your \r\n\r\nif IN[1]==\"Ok\":\r\n    #======================================================\r\n    # Specify the source file path\r\n    source_file = 'eplusrevit.idf'\r\n    \r\n    # Specify the destination folder path\r\n    destination_folder = 'Eplusruns'\r\n    \r\n    # Create the destination folder if it doesn't exist\r\n    os.makedirs(destination_folder, exist_ok=True)\r\n    \r\n    # Copy the file to the destination folder\r\n    shutil.copy(source_file, destination_folder)\r\n    #======================================================\r\n    \r\n    os.chdir(IN[0]+'/Eplusruns')\r\n    #IDF.setiddname(iddfile)\r\n    idfpath = 'eplusrevit.idf'\r\n    print(idfpath)\r\n    #IDFfile=IDF(idfpath)\r\n    EPWfile=IN[2]\r\n    a=IDF(idfpath,EPWfile).run()\r\n    \r\n    \r\n    # Assign your output to the OUT variable.\r\n    OUT = 0",
+      "Engine": "CPython3",
+      "EngineName": "CPython3",
+      "VariableInputPorts": true,
+      "Id": "228a0b295b294ddca10a9efd62113ef8",
+      "NodeType": "PythonScriptNode",
+      "Inputs": [
+        {
+          "Id": "2aa41deaf0684032957a311a80d3441e",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "78b3246d899b421783b83f1ebe2d1a75",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "c95e5faafe984f63a2670b67bad85702",
+          "Name": "IN[2]",
+          "Description": "Input #2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "612942a7dcb94b13bdce04317179ee5e",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded Python script."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "Id": "c0e4846f126243ad835a951f394bc14c",
+      "NodeType": "CodeBlockNode",
+      "Inputs": [],
+      "Outputs": [],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly",
+      "Code": ""
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "ad5178e08d9f417994fd95277ba3a1dd",
+      "End": "6778d394aa8145508ab83e894bfe8cba",
+      "Id": "444d50a998f4439facd056e4990098f4",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "ad5178e08d9f417994fd95277ba3a1dd",
+      "End": "7e9f097010224200931f90876332f8aa",
+      "Id": "d58c3113195b48c9b753299a5d094158",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "ad5178e08d9f417994fd95277ba3a1dd",
+      "End": "2aa41deaf0684032957a311a80d3441e",
+      "Id": "391f00294eae4487bb542b82cb680e56",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "0927c4e9706943088f7ac9d5a59706ad",
+      "End": "c95e5faafe984f63a2670b67bad85702",
+      "Id": "c85efe094bea46b28bf8ac3ca6a380c9",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "e0099360a1e6453cb583938a46687d6a",
+      "End": "78b3246d899b421783b83f1ebe2d1a75",
+      "Id": "4e10c2a2b85b4dedabd8544f05c6fb79",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "c79bfffe87cc47e58c4d74da42ebbb5a",
+      "End": "978a9db5996d4f5d8918fa9a6b153791",
+      "Id": "d0afeb839531431f9d3a1c9a5fcd7906",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "c4f5daecc69944ef98d0e03ec0c63970",
+      "End": "7506d8e01e2f477aa62af26694393044",
+      "Id": "88685924544144e58d230085c61992d2",
+      "IsHidden": "False"
+    }
+  ],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [
+    {
+      "Name": "GenerativeDesign",
+      "Version": "6.0.2.0",
+      "ReferenceType": "Package",
+      "Nodes": [
+        "6275b04352544a2fa834f2c1bb2fa74e"
+      ]
+    },
+    {
+      "Name": "LKA_CP_Kandy.434440_TMYx.epw",
+      "ReferenceType": "External",
+      "Nodes": [
+        "303862c6e57a4691a074edee47f82922"
+      ]
+    }
+  ],
+  "Thumbnail": "",
+  "GraphDocumentationURL": null,
+  "ExtensionWorkspaceData": [
+    {
+      "ExtensionGuid": "28992e1d-abb9-417f-8b1b-05e053bee670",
+      "Name": "Properties",
+      "Version": "2.13",
+      "Data": {
+        "Custom Property 1": ""
+      }
+    },
+    {
+      "ExtensionGuid": "DFBD9CC0-DB40-457A-939E-8C8555555A9D",
+      "Name": "Generative Design",
+      "Version": "2.0",
+      "Data": {}
+    }
+  ],
+  "Author": "Udara Sachinthana",
+  "Linting": {
+    "activeLinter": "None",
+    "activeLinterId": "7b75fb44-43fd-4631-a878-29f4d5d8399a",
+    "warningCount": 0,
+    "errorCount": 0
+  },
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.19.3.6394",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "_Background Preview",
+      "EyeX": -17.0,
+      "EyeY": 24.0,
+      "EyeZ": 50.0,
+      "LookX": 12.0,
+      "LookY": -13.0,
+      "LookZ": -58.0,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "ConnectorPins": [],
+    "NodeViews": [
+      {
+        "Id": "1a20cf653f414e0dbb6379152cfc0795",
+        "Name": "Working folder",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": -339.68368180717471,
+        "Y": 225.43028673412275
+      },
+      {
+        "Id": "303862c6e57a4691a074edee47f82922",
+        "Name": "File Path",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": -370.0337309700476,
+        "Y": 383.59525333465308
+      },
+      {
+        "Id": "ccd36cba21ca49a58a760f177dbc7df9",
+        "Name": "Schedule default",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": -442.06939284391012,
+        "Y": 521.89858743626758
+      },
+      {
+        "Id": "72147589e1ea45f9a1ad909062762c26",
+        "Name": "gbXML to IDF",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 547.03979289609379,
+        "Y": 707.67253578176224
+      },
+      {
+        "Id": "e1d55ff1d6824efcbf322cd77ea25bd9",
+        "Name": "Design Option",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": -230.14261505093828,
+        "Y": 659.85630068556145
+      },
+      {
+        "Id": "2e084a5570b34fb89977ce3c6f691bfa",
+        "Name": "BIM to gbXML",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 325.09873115402343,
+        "Y": 152.129961294655
+      },
+      {
+        "Id": "6275b04352544a2fa834f2c1bb2fa74e",
+        "Name": "Data.Gate",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 52.380650158530329,
+        "Y": 152.59269610163813
+      },
+      {
+        "Id": "228a0b295b294ddca10a9efd62113ef8",
+        "Name": "Python Script",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 829.2555841909757,
+        "Y": 568.73176834484877
+      },
+      {
+        "Id": "c0e4846f126243ad835a951f394bc14c",
+        "Name": "Code Block",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 310.52585749532386,
+        "Y": 388.7665753241285
+      }
+    ],
+    "Annotations": [
+      {
+        "Id": "c26c7a0630e44c6a8e1eebf01073a354",
+        "Title": "Inputs",
+        "DescriptionText": "Template files of idf should be specified by the user",
+        "IsExpanded": true,
+        "WidthAdjustment": 0.0,
+        "HeightAdjustment": 0.0,
+        "Nodes": [
+          "1a20cf653f414e0dbb6379152cfc0795",
+          "303862c6e57a4691a074edee47f82922",
+          "ccd36cba21ca49a58a760f177dbc7df9",
+          "e1d55ff1d6824efcbf322cd77ea25bd9",
+          "4d95c70be9ef4fe8aefe7116a4142fb6",
+          "6275b04352544a2fa834f2c1bb2fa74e"
+        ],
+        "HasNestedGroups": false,
+        "Left": -452.06939284391012,
+        "Top": 80.19269610163812,
+        "Width": 746.45004300244045,
+        "Height": 711.46360458392326,
+        "FontSize": 36.0,
+        "GroupStyleId": "00000000-0000-0000-0000-000000000000",
+        "InitialTop": 152.59269610163813,
+        "InitialHeight": 579.42601395143868,
+        "TextblockHeight": 62.4,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "748c7ef9a6594a2faf5c53622798916e",
+        "Title": "Revit Eplus file conversion",
+        "DescriptionText": "First gbXML file is exported to the working folder and then gbXML is converted to IDF file.",
+        "IsExpanded": true,
+        "WidthAdjustment": 0.0,
+        "HeightAdjustment": 0.0,
+        "Nodes": [
+          "72147589e1ea45f9a1ad909062762c26"
+        ],
+        "HasNestedGroups": false,
+        "Left": 537.03979289609379,
+        "Top": 510.47253578176225,
+        "Width": 193.60000000000002,
+        "Height": 360.99999999999994,
+        "FontSize": 36.0,
+        "GroupStyleId": "00000000-0000-0000-0000-000000000000",
+        "InitialTop": 707.67253578176224,
+        "InitialHeight": 145.0,
+        "TextblockHeight": 187.2,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "4d95c70be9ef4fe8aefe7116a4142fb6",
+        "Title": "Select default IDF template file",
+        "DescriptionText": null,
+        "IsExpanded": true,
+        "WidthAdjustment": 0.0,
+        "HeightAdjustment": 0.0,
+        "Nodes": [],
+        "HasNestedGroups": false,
+        "Left": -309.24386580175377,
+        "Top": 201.4402400639926,
+        "Width": 0.0,
+        "Height": 0.0,
+        "FontSize": 36.0,
+        "GroupStyleId": "00000000-0000-0000-0000-000000000000",
+        "InitialTop": 0.0,
+        "InitialHeight": 0.0,
+        "TextblockHeight": 0.0,
+        "Background": "#FFC1D676"
+      }
+    ],
+    "X": 190.4237973673753,
+    "Y": 176.07353260468989,
+    "Zoom": 0.35250038042894549
+  }
+}
