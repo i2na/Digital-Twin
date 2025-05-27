@@ -17,4 +17,4 @@ extracted_texts/
 vector_db/
 
 files/energyplus_input_template.xlsx
-file/*.idf
+files/*.idf
