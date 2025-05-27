@@ -18,3 +18,4 @@ vector_db/
 
 files/energyplus_input_template.xlsx
 files/*.idf
+files/*.json
