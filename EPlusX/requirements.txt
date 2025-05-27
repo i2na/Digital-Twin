@@ -6,3 +6,9 @@ numpy
 pandas
 openpyxl
 python-dotenv
+lxml
+xgbxml
+eppy
+shapely
+triangle
+matplotlib
