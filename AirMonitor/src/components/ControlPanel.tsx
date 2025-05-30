@@ -41,7 +41,7 @@ function RoomList({
   onSelect: (room: number) => void;
 }) {
   return (
-    <div className="flex flex-col gap-4 flex-1">
+    <div className="flex flex-col gap-3 flex-1">
       <div className="text-[#878787] font-bold text-lg ml-1">공간별 상태</div>
       {Object.entries(roomsLatest).map(([room, info]) => (
         <button
@@ -98,9 +98,9 @@ function RoomDetail({
     tab === "실시간" ? historyData.humidity.slice(-20) : historyData.humidity;
 
   return (
-    <div className="flex flex-col gap-4 flex-1">
+    <div className="flex flex-col gap-3 flex-1">
       {/* 방 선택/뒤로가기 영역 */}
-      <div className="flex items-center mb-2 gap-2">
+      <div className="flex items-center gap-2">
         <button
           onClick={onBack}
           className="text-gray-500 hover:text-gray-900 rounded-full p-1"

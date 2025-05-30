@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import TopBar from "@/components/TopBar";
 import ControlPanel from "@/components/ControlPanel";
 import RemotePanelToggle from "@/components/RemotePanelToggle";
+import "@/styles/forge_overrides.css";
 
 declare global {
   interface Window {
@@ -31,7 +32,6 @@ declare global {
         constructor(container: HTMLDivElement, options?: any);
         start(): boolean;
         loadDocumentNode(document: Document, geometry: any): Promise<void>;
-        setTheme?(theme: string): void;
         finish?(): void;
       }
     }
@@ -42,6 +42,7 @@ export default function ModelViewer({ urn }: { urn: string }) {
   const container = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
 
+  // Autodesk Viewer 스크립트 로드 대기
   useEffect(() => {
     const iv = setInterval(() => {
       if (window.Autodesk?.Viewing) {
@@ -52,30 +53,32 @@ export default function ModelViewer({ urn }: { urn: string }) {
     return () => clearInterval(iv);
   }, []);
 
+  // 뷰어 초기화
   useEffect(() => {
     if (!ready || !urn || !container.current) return;
 
-    let viewer: any;
+    let viewer: Autodesk.Viewing.GuiViewer3D | undefined;
 
-    const options = {
+    const viewerOptions = {
       env: "AutodeskProduction",
       theme: "dark-theme",
-      extensions: [],
+      extensions: [], // 필요하면 추가
     };
 
     window.Autodesk!.Viewing.Initializer(
       {
-        env: options.env,
-        getAccessToken: async (cb: (t: string, e: number) => void) => {
-          const res = await fetch("/api/auth/twolegged");
-          const data = await res.json();
-          cb(data.access_token, data.expires_in);
+        env: viewerOptions.env,
+        getAccessToken: async (cb) => {
+          const { access_token, expires_in } = await fetch(
+            "/api/auth/twolegged"
+          ).then((r) => r.json());
+          cb(access_token, expires_in);
         },
       },
       () => {
         viewer = new window.Autodesk!.Viewing.GuiViewer3D(
           container.current!,
-          options
+          viewerOptions
         );
         window.forgeViewer = viewer;
         viewer.start();
@@ -84,26 +87,14 @@ export default function ModelViewer({ urn }: { urn: string }) {
           `urn:${urn}`,
           (doc) => {
             const geom = doc.getRoot().getDefaultGeometry();
-            viewer.loadDocumentNode(doc, geom).then(() => {
-              setTimeout(() => {
-                const cube = container.current!.querySelector(
-                  ".viewcubeWrapper"
-                ) as HTMLElement;
-                if (cube) {
-                  cube.style.top = "80px";
-                  cube.style.right = "24px";
-                }
-              }, 1200);
-            });
+            viewer!.loadDocumentNode(doc, geom);
           },
           (code, msg) => console.error("Model load failed", code, msg)
         );
       }
     );
 
-    return () => {
-      if (viewer && viewer.finish) viewer.finish();
-    };
+    return () => viewer?.finish?.();
   }, [ready, urn]);
 
   return (
