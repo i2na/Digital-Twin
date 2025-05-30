@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GiWindSlap } from "react-icons/gi";
 import { FaSnowflake, FaWind } from "react-icons/fa";
 
@@ -16,6 +16,20 @@ export default function RemotePanel({ onClose }: RemotePanelProps) {
   const [deviceStates, setDeviceStates] = useState([true, false, false, false]);
   const [windMode, setWindMode] = useState<"고정" | "무풍" | "정음">("고정");
   const [energySave, setEnergySave] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/status/aircon")
+      .then((res) => {
+        if (!res.ok) throw new Error(res.statusText);
+        return res.json();
+      })
+      .then((data) => {
+        console.log("aircon status:", data);
+      })
+      .catch((err) => {
+        console.error("aircon fetch error:", err);
+      });
+  }, []);
 
   return (
     <>

@@ -11,6 +11,12 @@ export async function GET() {
     );
     if (!authRes.ok) throw new Error("토큰 발급 실패");
     const tokenData = await authRes.json();
+    const accessToken = tokenData.access_token as string;
+
+    const response = NextResponse.next();
+    response.cookies.set("tandem_token", accessToken, {
+      httpOnly: true,
+    });
 
     // 2. RVT 파일 읽기
     const filePath = path.join(process.cwd(), "public", "model3.rvt");
@@ -19,12 +25,12 @@ export async function GET() {
 
     // 3. Forge Upload 시작
     const uploadRes = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/upload`,
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/model/upload`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          access_token: tokenData.access_token,
+          access_token: accessToken,
           fileName: "model3.rvt",
           fileType: "application/octet-stream",
         }),
@@ -54,7 +60,7 @@ export async function GET() {
     // 5. finalize
     await new Promise((r) => setTimeout(r, 1000));
     const finalizeRes = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/upload`,
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/model/upload`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -74,7 +80,7 @@ export async function GET() {
 
     // 6. 번역 요청
     const translateRes = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/translate`,
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/model/translate`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -90,7 +96,7 @@ export async function GET() {
     while (true) {
       await new Promise((r) => setTimeout(r, 3000));
       const progRes = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/translate/${urn}/progress?accessToken=${tokenData.access_token}`
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/model/translate/${urn}/progress?accessToken=${tokenData.access_token}`
       );
       const { status } = await progRes.json();
       if (status === "success") break;

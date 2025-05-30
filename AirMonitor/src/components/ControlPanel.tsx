@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -10,6 +10,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  Brush,
 } from "recharts";
 import { PiBuildingApartmentFill, PiSidebarSimple } from "react-icons/pi";
 import { IoPeople } from "react-icons/io5";
@@ -90,12 +91,8 @@ function RoomDetail({
 }) {
   const latest = roomsLatest[room];
   const historyData = roomsHistory[room] || { temperature: [], humidity: [] };
-  const tempData =
-    tab === "실시간"
-      ? historyData.temperature.slice(-20)
-      : historyData.temperature;
-  const humData =
-    tab === "실시간" ? historyData.humidity.slice(-20) : historyData.humidity;
+  const tempData = historyData.temperature;
+  const humData = historyData.humidity;
 
   return (
     <div className="flex flex-col gap-3 flex-1">
@@ -142,70 +139,7 @@ function RoomDetail({
       >
         <p className="text-[#828282] text-base mb-2">온도 (°C)</p>
         <div className="h-36">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={tempData}
-              margin={{ top: 8, right: 12, bottom: 0, left: 0 }}
-            >
-              <defs>
-                <linearGradient id="tempGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#4F46E5" stopOpacity={0.3} />
-                  <stop offset="80%" stopColor="#4F46E5" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                horizontal
-                vertical={false}
-                stroke="#E5E7EB"
-                opacity={0.3}
-              />
-              <XAxis
-                dataKey="time"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: "#6B7280", fontSize: 10 }}
-                interval="preserveStartEnd"
-              />
-              <YAxis
-                domain={["dataMin - 1", "dataMax + 1"]}
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: "#4F46E5", fontSize: 10 }}
-              />
-              <Tooltip
-                formatter={(v: number) => `${v.toFixed(1)}°C`}
-                contentStyle={{
-                  background: "#fff",
-                  border: "none",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                  borderRadius: 8,
-                }}
-                labelStyle={{ fontSize: 12, color: "#374151" }}
-              />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="none"
-                fill="url(#tempGrad)"
-                isAnimationActive
-                animationBegin={0}
-                animationDuration={800}
-                animationEasing="ease-out"
-              />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke="#4F46E5"
-                strokeWidth={1}
-                dot={false}
-                activeDot={{ r: 4, strokeWidth: 2, fill: "#fff" }}
-                isAnimationActive
-                animationBegin={0}
-                animationDuration={800}
-                animationEasing="ease-out"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <TempChart tempData={tempData} />
         </div>
       </motion.div>
       {/* 습도 차트 */}
@@ -218,75 +152,169 @@ function RoomDetail({
       >
         <p className="text-[#828282] text-base mb-2">습도 (%)</p>
         <div className="h-36">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={humData}
-              margin={{ top: 8, right: 12, bottom: 0, left: 0 }}
-            >
-              <defs>
-                <linearGradient id="humGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#0EA5E9" stopOpacity={0.3} />
-                  <stop offset="80%" stopColor="#0EA5E9" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                horizontal
-                vertical={false}
-                stroke="#E5E7EB"
-                opacity={0.3}
-              />
-              <XAxis
-                dataKey="time"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: "#6B7280", fontSize: 10 }}
-                interval="preserveStartEnd"
-              />
-              <YAxis
-                domain={["dataMin - 5", "dataMax + 5"]}
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: "#0EA5E9", fontSize: 10 }}
-              />
-              <Tooltip
-                formatter={(v: number) => `${v.toFixed(0)}%`}
-                contentStyle={{
-                  background: "#fff",
-                  border: "none",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                  borderRadius: 8,
-                }}
-                labelStyle={{ fontSize: 12, color: "#374151" }}
-              />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="none"
-                fill="url(#humGrad)"
-                isAnimationActive
-                animationBegin={0}
-                animationDuration={800}
-                animationEasing="ease-out"
-              />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke="#0EA5E9"
-                strokeWidth={1}
-                dot={false}
-                activeDot={{ r: 4, strokeWidth: 2, fill: "#fff" }}
-                isAnimationActive
-                animationBegin={0}
-                animationDuration={800}
-                animationEasing="ease-out"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <HumChart humData={humData} />
         </div>
       </motion.div>
     </div>
   );
 }
+
+const TempChart = memo(function TempChart({ tempData }: { tempData: Point[] }) {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart
+        data={tempData}
+        margin={{ top: 8, right: 20, bottom: 0, left: 0 }}
+      >
+        <defs>
+          <linearGradient id="tempGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#4F46E5" stopOpacity={0.3} />
+            <stop offset="80%" stopColor="#4F46E5" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid
+          horizontal
+          vertical={false}
+          stroke="#E5E7EB"
+          opacity={0.3}
+        />
+        <XAxis
+          dataKey="time"
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: "#6B7280", fontSize: 10 }}
+          interval="preserveStartEnd"
+        />
+        <YAxis
+          domain={["dataMin - 1", "dataMax + 1"]}
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: "#4F46E5", fontSize: 10 }}
+        />
+        <Tooltip
+          formatter={(v: number) => `${v.toFixed(1)}°C`}
+          contentStyle={{
+            background: "#fff",
+            border: "none",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            borderRadius: 8,
+          }}
+          labelStyle={{ fontSize: 12, color: "#374151" }}
+        />
+        {tempData.length > 20 && (
+          <Brush
+            dataKey="time"
+            height={15}
+            stroke="#8884d8"
+            startIndex={tempData.length - 40}
+            endIndex={tempData.length - 1}
+          />
+        )}
+        <Area
+          type="monotone"
+          dataKey="value"
+          stroke="none"
+          fill="url(#tempGrad)"
+          isAnimationActive
+          animationBegin={0}
+          animationDuration={800}
+          animationEasing="ease-out"
+        />
+        <Line
+          type="monotone"
+          dataKey="value"
+          stroke="#4F46E5"
+          strokeWidth={1}
+          dot={false}
+          activeDot={{ r: 4, strokeWidth: 2, fill: "#fff" }}
+          isAnimationActive
+          animationBegin={0}
+          animationDuration={800}
+          animationEasing="ease-out"
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+});
+
+// 습도 차트도 같은 패턴
+const HumChart = memo(function HumChart({ humData }: { humData: Point[] }) {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart
+        data={humData}
+        margin={{ top: 8, right: 12, bottom: 0, left: 0 }}
+      >
+        <defs>
+          <linearGradient id="humGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#0EA5E9" stopOpacity={0.3} />
+            <stop offset="80%" stopColor="#0EA5E9" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid
+          horizontal
+          vertical={false}
+          stroke="#E5E7EB"
+          opacity={0.3}
+        />
+        <XAxis
+          dataKey="time"
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: "#6B7280", fontSize: 10 }}
+          interval="preserveStartEnd"
+        />
+        <YAxis
+          domain={["dataMin - 5", "dataMax + 5"]}
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: "#0EA5E9", fontSize: 10 }}
+        />
+        <Tooltip
+          formatter={(v: number) => `${v.toFixed(0)}%`}
+          contentStyle={{
+            background: "#fff",
+            border: "none",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            borderRadius: 8,
+          }}
+          labelStyle={{ fontSize: 12, color: "#374151" }}
+        />
+        {humData.length > 20 && (
+          <Brush
+            dataKey="time"
+            height={15}
+            stroke="#0EA5E9"
+            startIndex={humData.length - 40}
+            endIndex={humData.length - 1}
+          />
+        )}
+        <Area
+          type="monotone"
+          dataKey="value"
+          stroke="none"
+          fill="url(#humGrad)"
+          isAnimationActive
+          animationBegin={0}
+          animationDuration={800}
+          animationEasing="ease-out"
+        />
+        <Line
+          type="monotone"
+          dataKey="value"
+          stroke="#0EA5E9"
+          strokeWidth={1}
+          dot={false}
+          activeDot={{ r: 4, strokeWidth: 2, fill: "#fff" }}
+          isAnimationActive
+          animationBegin={0}
+          animationDuration={800}
+          animationEasing="ease-out"
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+});
 
 // ── 지난 통계 컴포넌트 ──
 function StatsTab() {
@@ -315,23 +343,23 @@ export default function ControlPanel() {
   const [roomsLatest, setRoomsLatest] = useState<RoomsLatest>({});
   const [roomsHistory, setRoomsHistory] = useState<RoomsHistory>({});
 
-  // 2초마다 데이터 폴링
+  // 데이터 폴링
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const res = await fetch("/api/tandem/status");
+        const res = await fetch("/api/status/rooms");
         if (!res.ok) throw new Error(await res.text());
-        const { rooms, history } = await res.json();
-        setRoomsLatest(rooms);
-        setRoomsHistory(history);
+        const data = await res.json();
+        setRoomsLatest(data.rooms);
+        setRoomsHistory(data.history);
       } catch (e) {
         console.error(e);
       }
     };
     fetchStatus();
-    const iv = setInterval(fetchStatus, 2000);
+    const iv = setInterval(fetchStatus, 60000);
     return () => clearInterval(iv);
-  }, [selectedRoom]);
+  }, []);
 
   // 탭별 내용
   let TabContent;
@@ -378,7 +406,7 @@ export default function ControlPanel() {
 
   return (
     <div className="absolute top-0 left-0 z-20 h-screen p-[16px] pointer-events-none">
-      <div className="pointer-events-auto w-[320px] max-h-full flex flex-col bg-white/60 backdrop-blur-md border border-white/50 rounded-xl shadow-2xl overflow-hidden">
+      <div className="pointer-events-auto w-[360px] max-h-full flex flex-col bg-white/50 backdrop-blur-md border border-white/50 rounded-xl shadow-2xl overflow-hidden">
         {/* ── 헤더 (고정) ── */}
         <div className="flex items-center justify-between p-3">
           <div className="flex items-center space-x-3">

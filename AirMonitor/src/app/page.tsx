@@ -20,7 +20,7 @@ export default function Page() {
         if (savedUrn) {
           setUrn(savedUrn);
         } else {
-          const res = await fetch("/api/init");
+          const res = await fetch("/api/model/init");
           const data = await res.json();
           if (!res.ok) throw new Error("초기화 실패");
 
