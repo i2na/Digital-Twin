@@ -1,21 +1,79 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { GiWindSlap } from "react-icons/gi";
-import { FaSnowflake, FaWind } from "react-icons/fa";
+import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 interface RemotePanelProps {
   onClose: () => void;
 }
 
+const acModeOptions = ["cool", "heat", "dry", "wind", "aIComfort"] as const;
+const acModeMap: Record<(typeof acModeOptions)[number], string> = {
+  cool: "냉방",
+  heat: "난방",
+  dry: "제습",
+  wind: "송풍",
+  aIComfort: "AI 쾌적",
+};
+
+const fanModeOptions = ["auto", "1", "2", "3", "4", "max"] as const;
+const fanModeMap: Record<(typeof fanModeOptions)[number], string> = {
+  auto: "자동",
+  "1": "약풍",
+  "2": "미풍",
+  "3": "중풍",
+  "4": "강풍",
+  max: "최대풍",
+};
+
+const optionalModeOptions = [
+  "off",
+  "sleep",
+  "quiet",
+  "smart",
+  "windFree",
+  "windFreeSleep",
+] as const;
+const optionalModeMap: Record<(typeof optionalModeOptions)[number], string> = {
+  off: "꺼짐",
+  sleep: "수면",
+  quiet: "정음",
+  smart: "스마트",
+  windFree: "무풍 운전",
+  windFreeSleep: "무풍 수면",
+};
+
 export default function RemotePanel({ onClose }: RemotePanelProps) {
-  const [mode, setMode] = useState<"auto" | "manual">("auto");
-  const [power, setPower] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [power, setPower] = useState(false);
   const [temp, setTemp] = useState(25);
-  const [selectedDevice, setSelectedDevice] = useState(1);
-  const [deviceStates, setDeviceStates] = useState([true, false, false, false]);
-  const [windMode, setWindMode] = useState<"고정" | "무풍" | "정음">("고정");
-  const [energySave, setEnergySave] = useState(false);
+  const [acMode, setAcMode] = useState<(typeof acModeOptions)[number]>(
+    acModeOptions[0]
+  );
+  const [fanMode, setFanMode] = useState<(typeof fanModeOptions)[number]>(
+    fanModeOptions[0]
+  );
+  const [optionalMode, setOptionalMode] = useState<
+    (typeof optionalModeOptions)[number]
+  >(optionalModeOptions[0]);
+
+  const prev = <T extends readonly string[]>(
+    options: T,
+    current: T[number],
+    setter: (v: T[number]) => void
+  ) => {
+    const i = options.indexOf(current as any);
+    setter(options[(i - 1 + options.length) % options.length]);
+  };
+  const next = <T extends readonly string[]>(
+    options: T,
+    current: T[number],
+    setter: (v: T[number]) => void
+  ) => {
+    const i = options.indexOf(current as any);
+    setter(options[(i + 1) % options.length]);
+  };
 
   useEffect(() => {
     fetch("/api/status/aircon")
@@ -24,94 +82,95 @@ export default function RemotePanel({ onClose }: RemotePanelProps) {
         return res.json();
       })
       .then((data) => {
+        setLoading(true);
         console.log("aircon status:", data);
+        setPower(data.switch_AC_1 === 1 || data.switch_AC_1 === "on");
+        setTemp(data.setpoint_AC_1 ?? temp);
+        if (acModeOptions.includes(data.mode_AC_1)) {
+          setAcMode(data.mode_AC_1);
+        }
+        if (fanModeOptions.includes(data.fanMode_AC_1)) {
+          setFanMode(data.fanMode_AC_1);
+        }
+        if (optionalModeOptions.includes(data.supportedMode_AC_1)) {
+          setOptionalMode(data.supportedMode_AC_1);
+        }
       })
       .catch((err) => {
         console.error("aircon fetch error:", err);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, []);
 
+  const handleApply = async () => {
+    const body = {
+      switch: power ? 1 : 0,
+      setpoint: temp,
+      mode: acMode,
+      fanMode,
+      optionalMode,
+    };
+    try {
+      const res = await fetch("/api/control/aircon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      alert("제어 명령이 성공적으로 전송되었습니다.");
+      onClose();
+    } catch (e) {
+      console.error("aircon control error:", e);
+      alert("제어 명령 전송에 실패했습니다.");
+    }
+  };
+
   return (
     <>
+      {/* 백드롭 */}
       <div className="fixed inset-0 z-40" onClick={onClose} />
 
-      <div className="fixed z-50 right-[16px] bottom-[80px] w-[300px] bg-white/60 backdrop-blur-md rounded-xl shadow-2xl border border-gray-200 p-3 flex flex-col gap-2">
-        <h3 className="text-center text-lg font-semibold text-[#828282] mb-2">
-          에어컨 리모컨
+      {/* 패널 */}
+      <div
+        className={`fixed z-50 right-4 bottom-20 w-[330px] bg-white/60 backdrop-blur-md rounded-xl shadow-2xl border border-gray-200 p-3 flex flex-col gap-2
+         ${loading ? "opacity-60" : ""}`}
+      >
+        {loading && (
+          <div className="absolute w-full h-full flex justify-center items-center">
+            <AiOutlineLoading3Quarters
+              className="animate-spin text-gray-500"
+              size={32}
+            />
+          </div>
+        )}
+        <h3 className="text-center text-lg font-semibold text-gray-600">
+          513호 - 드론 스튜디오
         </h3>
-
-        <div className="flex bg-white/50 p-[9px] gap-1 rounded-md">
-          <button
-            onClick={() => setMode("auto")}
-            className={`flex-1 py-1 font-semibold text-center transition rounded-md ${
-              mode === "auto"
-                ? "bg-gray-900 text-white"
-                : "bg-white text-gray-900"
-            }`}
-          >
-            자동
-          </button>
-          <button
-            onClick={() => setMode("manual")}
-            className={`flex-1 py-1 font-semibold text-center transition rounded-md ${
-              mode === "manual"
-                ? "bg-gray-900 text-white"
-                : "bg-white text-gray-900"
-            }`}
-          >
-            수동
-          </button>
-        </div>
-
-        <div className=" bg-white/40 p-[9px] rounded-md flex flex-col gap-2">
-          <div className="bg-white rounded-md">
-            <div className="flex justify-between items-center p-2 text-[#828282] mb-2">
-              <span>기기</span>
-              <span
-                className="cursor-pointer"
-                onClick={() => {
-                  const allOn = deviceStates.every((v) => v);
-                  setDeviceStates(deviceStates.map(() => !allOn));
-                }}
-              >
-                전체선택
-              </span>
-            </div>
-            <div className="flex gap-2 px-2 mb-1">
-              {deviceStates.map((isOn, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    setSelectedDevice(idx + 1);
-                    setDeviceStates((ds) =>
-                      ds.map((v, i) => (i === idx ? !v : v))
-                    );
-                  }}
-                  className={`flex-1 py-2 rounded-md text-center font-semibold transition ${
-                    selectedDevice === idx + 1
-                      ? "bg-gray-900 text-white"
-                      : "bg-[#DDDDDD] text-gray-600"
-                  }`}
-                >
-                  {idx + 1}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2 px-2 text-center text-sm text-gray-500">
-              {deviceStates.map((isOn, idx) => (
-                <span key={idx} className="flex-1">
-                  {isOn ? "on" : "off"}
-                </span>
-              ))}
-            </div>
+        <div className="h-[2px] bg-[#D9D9D9]"></div>
+        <>
+          {/* 전원 */}
+          <div className="flex items-center justify-between bg-white rounded-md p-3 shadow">
+            <span className="text-gray-700 font-medium">전원</span>
+            <button
+              onClick={() => setPower((p) => !p)}
+              className={`w-10 h-10 flex items-center justify-center rounded-full transition ${
+                power ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-500"
+              }`}
+              aria-label="전원 토글"
+            >
+              {power ? "⏻" : "⏼"}
+            </button>
           </div>
 
-          <div className=" bg-white rounded-md p-4">
-            <div className="flex justify-between items-center px-1">
-              <span className="text-[#828282] font-medium">희망온도</span>
-              <span className="text-2xl font-bold text-gray-900">{temp}°C</span>
+          {/* 희망 온도 슬라이더 */}
+          <div className="bg-white rounded-md p-3 shadow">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-gray-700 font-medium">희망온도</span>
+              <span className="text-2xl font-bold">{temp}°C</span>
             </div>
-            <div className="flex items-center space-x-2 px-1">
+            <div className="flex items-center space-x-2">
               <button
                 onClick={() => setTemp((t) => Math.max(16, t - 1))}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-gray-600"
@@ -123,7 +182,7 @@ export default function RemotePanel({ onClose }: RemotePanelProps) {
                 min={16}
                 max={30}
                 value={temp}
-                onChange={(e) => setTemp(Number(e.target.value))}
+                onChange={(e) => setTemp(+e.target.value)}
                 className="flex-1 h-1 bg-gray-300 rounded-lg accent-blue-500"
               />
               <button
@@ -136,57 +195,85 @@ export default function RemotePanel({ onClose }: RemotePanelProps) {
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            {/* 모드 */}
-            <button className="flex flex-col items-center justify-center p-4 bg-white rounded-md shadow text-[#828282]">
-              <FaSnowflake className="text-blue-500 mb-1" size={24} />
-              <span className="font-semibold">냉방</span>
-            </button>
+            {/* 운전 모드 */}
+            <div className="bg-white rounded-md shadow p-3 flex flex-col items-center">
+              <span className="text-sm text-gray-500 mb-1">모드</span>
+              <div className="w-full flex justify-between">
+                <button
+                  onClick={() => prev(acModeOptions, acMode, setAcMode)}
+                  className="px-2"
+                >
+                  <IoIosArrowBack />
+                </button>
+                <div className="mx-2 text-lg font-semibold">
+                  {acModeMap[acMode]}
+                </div>
+                <button
+                  onClick={() => next(acModeOptions, acMode, setAcMode)}
+                  className="px-2"
+                >
+                  <IoIosArrowForward />
+                </button>
+              </div>
+            </div>
+
             {/* 바람세기 */}
-            <button className="flex flex-col items-center justify-center p-4 bg-white rounded-md shadow text-[#828282]">
-              <FaWind className="text-yellow-500 mb-1" size={24} />
-              <span className="font-semibold">자돌풍</span>
-            </button>
-            {/* 바람방향 */}
-            <button className="flex flex-col items-center justify-center p-4 bg-white rounded-md shadow text-[#828282]">
-              <GiWindSlap className="text-gray-500 mb-1" size={24} />
-              <span className="font-semibold">{windMode}</span>
-            </button>
-            {/* 토글 */}
-            <div className="flex flex-col justify-around p-4 bg-white rounded-md shadow">
-              <label className="flex items-center justify-between text-[#828282]">
-                <span>무풍</span>
-                <input
-                  type="checkbox"
-                  checked={windMode === "무풍"}
-                  onChange={() =>
-                    setWindMode((wd) => (wd === "무풍" ? "고정" : "무풍"))
+            <div className="bg-white rounded-md shadow p-3 flex flex-col items-center">
+              <span className="text-sm text-gray-500 mb-1">바람세기</span>
+              <div className="w-full flex justify-between">
+                <button
+                  onClick={() => prev(fanModeOptions, fanMode, setFanMode)}
+                  className="px-2"
+                >
+                  <IoIosArrowBack />
+                </button>
+                <div className="mx-2 text-lg font-semibold">
+                  {fanModeMap[fanMode]}
+                </div>
+                <button
+                  onClick={() => next(fanModeOptions, fanMode, setFanMode)}
+                  className="px-2"
+                >
+                  <IoIosArrowForward />
+                </button>
+              </div>
+            </div>
+
+            {/* 부가운전 */}
+            <div className="col-span-2 bg-white rounded-md shadow p-3 flex flex-col">
+              <span className="text-sm text-gray-500 mb-1">부가운전</span>
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() =>
+                    prev(optionalModeOptions, optionalMode, setOptionalMode)
                   }
-                  className="toggle"
-                />
-              </label>
-              <label className="flex items-center justify-between text-[#828282]">
-                <span>정음</span>
-                <input
-                  type="checkbox"
-                  checked={windMode === "정음"}
-                  onChange={() =>
-                    setWindMode((wd) => (wd === "정음" ? "고정" : "정음"))
+                  className="px-2"
+                >
+                  <IoIosArrowBack />
+                </button>
+                <div className="text-lg font-semibold">
+                  {optionalModeMap[optionalMode]}
+                </div>
+                <button
+                  onClick={() =>
+                    next(optionalModeOptions, optionalMode, setOptionalMode)
                   }
-                  className="toggle"
-                />
-              </label>
-              <label className="flex items-center justify-between text-[#828282]">
-                <span>절전</span>
-                <input
-                  type="checkbox"
-                  checked={energySave}
-                  onChange={() => setEnergySave((es) => !es)}
-                  className="toggle toggle-primary"
-                />
-              </label>
+                  className="px-2"
+                >
+                  <IoIosArrowForward />
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+
+          {/* 적용하기 버튼 */}
+          <button
+            onClick={handleApply}
+            className="mt-2 py-2 bg-black text-white rounded-md font-semibold"
+          >
+            적용하기
+          </button>
+        </>
       </div>
     </>
   );

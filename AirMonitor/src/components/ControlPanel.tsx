@@ -137,7 +137,12 @@ function RoomDetail({
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="bg-white rounded-lg shadow p-3"
       >
-        <p className="text-[#828282] text-base mb-2">온도 (°C)</p>
+        <div className="w-full flex justify-between mb-2">
+          <p className="text-[#828282] text-base ">온도 (°C)</p>
+          {tempData.length > 0
+            ? `${tempData[tempData.length - 1].value}°C`
+            : "-"}
+        </div>
         <div className="h-36">
           <TempChart tempData={tempData} />
         </div>
@@ -150,7 +155,10 @@ function RoomDetail({
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="bg-white rounded-lg shadow p-3 overflow-auto"
       >
-        <p className="text-[#828282] text-base mb-2">습도 (%)</p>
+        <div className="w-full flex justify-between mb-2">
+          <p className="text-[#828282] text-base ">습도 (%)</p>
+          {humData.length > 0 ? `${humData[humData.length - 1].value}%` : "-"}
+        </div>
         <div className="h-36">
           <HumChart humData={humData} />
         </div>

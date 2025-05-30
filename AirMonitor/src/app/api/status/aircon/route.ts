@@ -40,5 +40,7 @@ export async function GET(req: NextRequest) {
     result[param] = times.length ? entries[times[times.length - 1]] : null;
   }
 
+  console.log(result);
+
   return NextResponse.json(result);
 }
