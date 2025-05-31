@@ -45,6 +45,17 @@ declare global {
         setThemingColor(dbId: number, color: any): void;
         clearThemingColors(): void;
         getObjectTree(onLoaded: (instanceTree: any) => void): void;
+        setQualityLevel(level: "default" | "low" | "medium" | "high"): void;
+        impl: {
+          sceneUpdated: () => void;
+          invalidate: (force?: boolean) => void;
+        };
+        autocam?: {
+          shotParams: {
+            destinationPercent: number;
+            duration: number;
+          };
+        };
       }
       const SELECTION_CHANGED_EVENT: string;
     }
@@ -65,6 +76,7 @@ export default function ModelViewer({
   const ceilingDbIdsRef = useRef<number[]>([]);
   const [ready, setReady] = useState(false);
   const [modelLoaded, setModelLoaded] = useState(false);
+  const [lastSelectedRoom, setLastSelectedRoom] = useState<number | null>(null);
 
   const selectedRoom = useRoomStore((state) => state.selectedRoom);
 
@@ -107,6 +119,9 @@ export default function ModelViewer({
         );
         window.forgeViewer = viewer;
         viewerRef.current = viewer;
+
+        viewer.setQualityLevel("low");
+
         viewer.start();
 
         window.Autodesk!.Viewing.Document.load(
@@ -185,8 +200,18 @@ export default function ModelViewer({
 
     const ceilingIds = ceilingDbIdsRef.current;
 
+    if (selectedRoom === lastSelectedRoom) {
+      return;
+    }
+    setLastSelectedRoom(selectedRoom);
+
     if (selectedRoom == null) {
       viewer.clearThemingColors();
+
+      if ((viewer as any).autocam?.shotParams) {
+        (viewer as any).autocam.shotParams.destinationPercent = 1.5;
+        (viewer as any).autocam.shotParams.duration = 1.8;
+      }
 
       viewer.isolate([]);
       viewer.fitToView([]);
@@ -194,11 +219,18 @@ export default function ModelViewer({
       if (ceilingIds.length > 0) {
         viewer.hide(ceilingIds);
       }
+
+      viewer.impl.sceneUpdated();
       console.log("전체 모델 복원 (방 선택 해제).");
       return;
     }
 
     viewer.clearThemingColors();
+
+    if ((viewer as any).autocam?.shotParams) {
+      (viewer as any).autocam.shotParams.destinationPercent = 1.5;
+      (viewer as any).autocam.shotParams.duration = 1.8;
+    }
 
     viewer.isolate([]);
     viewer.fitToView([]);
@@ -212,13 +244,15 @@ export default function ModelViewer({
       console.warn(`매핑된 dbId가 없습니다: ${selectedRoom}호`);
       return;
     }
+
     viewer.fitToView(dbIds);
 
     const highlightColor = new Color(1, 1, 0.3);
     dbIds.forEach((dbId) => viewer.setThemingColor(dbId, highlightColor));
 
+    viewer.impl.sceneUpdated();
     console.log(`방 ${selectedRoom} zoom & highlight → dbIds:`, dbIds);
-  }, [selectedRoom, modelLoaded]);
+  }, [selectedRoom, modelLoaded, lastSelectedRoom]);
 
   return (
     <div
@@ -226,7 +260,6 @@ export default function ModelViewer({
       id="forgeViewer"
       className="relative w-screen h-screen"
     >
-      {/* 오버레이 UI */}
       <div className="absolute inset-0 pointer-events-none z-10">
         <TimeBar />
         <Dashboard />
