@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import TopBar from "@/components/TopBar";
-import ControlPanel from "@/components/ControlPanel";
-import RemotePanelToggle from "@/components/RemotePanelToggle";
+import TimeBar from "@/components/TimeBar";
+import Dashboard from "@/components/Dashboard/Dashboard";
+import RemoteToggle from "@/components/Remote/RemoteToggle";
 import "@/styles/forge_overrides.css";
 
 declare global {
@@ -104,9 +104,9 @@ export default function ModelViewer({ urn }: { urn: string }) {
       className="relative w-screen h-screen"
     >
       <div className="absolute inset-0 pointer-events-none z-10">
-        <TopBar />
-        <ControlPanel />
-        <RemotePanelToggle />
+        <TimeBar />
+        <Dashboard />
+        <RemoteToggle />
       </div>
     </div>
   );

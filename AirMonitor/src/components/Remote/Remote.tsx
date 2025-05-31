@@ -44,7 +44,7 @@ const optionalModeMap: Record<(typeof optionalModeOptions)[number], string> = {
   windFreeSleep: "무풍 수면",
 };
 
-export default function RemotePanel({ onClose }: RemotePanelProps) {
+export default function Remote({ onClose }: RemotePanelProps) {
   const [loading, setLoading] = useState(true);
   const [power, setPower] = useState(false);
   const [temp, setTemp] = useState(25);

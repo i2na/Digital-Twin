@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { FiClock } from "react-icons/fi";
 
-export default function TopBar() {
+export default function TimeBar() {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {

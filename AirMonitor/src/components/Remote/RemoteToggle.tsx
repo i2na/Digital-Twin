@@ -1,8 +1,8 @@
 import { useState } from "react";
-import RemotePanel from "@/components/RemotePanel";
+import RemotePanel from "@/components/Remote/Remote";
 import { MdSettingsRemote } from "react-icons/md";
 
-export default function RemotePanelToggle() {
+export default function RemoteToggle() {
   const [open, setOpen] = useState(false);
 
   return (

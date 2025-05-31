@@ -43,3 +43,23 @@ interface Window {
   NOP_VIEWER?: Autodesk.Viewing.GuiViewer3D;
   viewer?: Autodesk.Viewing.GuiViewer3D;
 }
+
+//Dashboard
+
+interface Point {
+  time: string;
+  value: number;
+}
+
+interface RoomLatest {
+  temperature: number;
+  humidity: number;
+  occupancy: number;
+}
+interface RoomsLatest {
+  [room: number]: RoomLatest;
+}
+
+interface RoomsHistory {
+  [room: number]: { temperature: Point[]; humidity: Point[] };
+}

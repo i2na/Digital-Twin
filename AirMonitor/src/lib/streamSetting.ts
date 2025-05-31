@@ -22,4 +22,14 @@ export const ROOM_STREAMS: Record<
     tempProp: "z:Bg",
     humProp: "z:CQ",
   },
+  515: {
+    streamId: "AQAAAGMyZDUzNzgzLTIxODYtNDUAAAAA",
+    tempProp: "z:EQ",
+    humProp: "z:Ew",
+  },
+  516: {
+    streamId: "AQAAAGRlMjc2NzlmLWYyOWUtNDYAAAAA",
+    tempProp: "z:Eg",
+    humProp: "z:FA",
+  },
 };

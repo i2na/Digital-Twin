@@ -1,6 +1,4 @@
-"use client";
-
-import { useState, useRef, useEffect, memo } from "react";
+import { useState, useEffect, memo, useRef } from "react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -12,80 +10,20 @@ import {
   Tooltip,
   Brush,
 } from "recharts";
-import { PiBuildingApartmentFill, PiSidebarSimple } from "react-icons/pi";
+import { motion } from "framer-motion";
 import { IoPeople } from "react-icons/io5";
-import { motion, AnimatePresence } from "framer-motion";
-import { FiChevronDown, FiChevronLeft } from "react-icons/fi";
+import { FiChevronLeft, FiChevronDown } from "react-icons/fi";
 
-interface Point {
-  time: string;
-  value: number;
-}
-interface RoomLatest {
-  temperature: number;
-  humidity: number;
-  occupancy: number;
-}
-interface RoomsLatest {
-  [room: number]: RoomLatest;
-}
-interface RoomsHistory {
-  [room: number]: { temperature: Point[]; humidity: Point[] };
-}
-
-// ── 실시간 방 리스트 컴포넌트 ──
-function RoomList({
-  roomsLatest,
-  onSelect,
-}: {
-  roomsLatest: RoomsLatest;
-  onSelect: (room: number) => void;
-}) {
-  return (
-    <div className="flex flex-col gap-3 flex-1">
-      <div className="text-[#878787] font-bold text-lg ml-1">공간별 상태</div>
-      {Object.entries(roomsLatest).map(([room, info]) => (
-        <button
-          key={room}
-          onClick={() => onSelect(Number(room))}
-          className="bg-white rounded-xl p-4 shadow flex flex-col items-start hover:bg-gray-50 transition"
-        >
-          <div className="text-[#969696] text-lg font-semibold mb-2">
-            {room}호
-          </div>
-          <div className="flex justify-between w-full">
-            <div className="flex items-end gap-1">
-              <span className="text-[#222] font-medium text-base">온도</span>
-              <span className="text-black font-bold text-lg ml-1">
-                {info.temperature}°C
-              </span>
-            </div>
-            <div className="flex items-end gap-1">
-              <span className="text-[#222] font-medium text-base">습도</span>
-              <span className="text-black font-bold text-lg ml-1">
-                {info.humidity}%
-              </span>
-            </div>
-          </div>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-// ── 실시간 방 상세 컴포넌트 ──
-function RoomDetail({
+export function RoomDetail({
   room,
   roomsLatest,
   roomsHistory,
-  tab,
   onBack,
   onSelectRoom,
 }: {
   room: number;
   roomsLatest: RoomsLatest;
   roomsHistory: RoomsHistory;
-  tab: string;
   onBack: () => void;
   onSelectRoom: (room: number) => void;
 }) {
@@ -107,7 +45,7 @@ function RoomDetail({
         </button>
         <div className="bg-white rounded-lg p-3 shadow flex items-center justify-between w-full">
           <span className="text-[#787878] text-base font-medium">공간</span>
-          <CustomRoomSelect
+          <RoomSelectDropdown
             rooms={Object.keys(roomsLatest)}
             value={String(room)}
             onChange={(r) => onSelectRoom(Number(r))}
@@ -131,7 +69,7 @@ function RoomDetail({
       </div>
       {/* 온도 차트 */}
       <motion.div
-        key={`temp-chart-${room}-${tab}`}
+        key={`temp-chart-${room}`}
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
@@ -149,7 +87,7 @@ function RoomDetail({
       </motion.div>
       {/* 습도 차트 */}
       <motion.div
-        key={`hum-chart-${room}-${tab}`}
+        key={`hum-chart-${room}`}
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
@@ -214,7 +152,7 @@ const TempChart = memo(function TempChart({ tempData }: { tempData: Point[] }) {
             dataKey="time"
             height={15}
             stroke="#8884d8"
-            startIndex={tempData.length - 40}
+            startIndex={Math.max(0, tempData.length - 120)}
             endIndex={tempData.length - 1}
           />
         )}
@@ -293,7 +231,7 @@ const HumChart = memo(function HumChart({ humData }: { humData: Point[] }) {
             dataKey="time"
             height={15}
             stroke="#0EA5E9"
-            startIndex={humData.length - 40}
+            startIndex={Math.max(0, humData.length - 120)}
             endIndex={humData.length - 1}
           />
         )}
@@ -324,155 +262,7 @@ const HumChart = memo(function HumChart({ humData }: { humData: Point[] }) {
   );
 });
 
-// ── 지난 통계 컴포넌트 ──
-function StatsTab() {
-  return (
-    <div className="flex-1 flex items-center justify-center text-gray-500 text-lg">
-      🚧 지난 통계 기능 준비 중입니다.
-    </div>
-  );
-}
-
-// ── 알림 컴포넌트 ──
-function AlertTab() {
-  return (
-    <div className="flex-1 flex items-center justify-center text-gray-500 text-lg">
-      🚧 알림 기능 준비 중입니다.
-    </div>
-  );
-}
-
-// ── ControlPanel 메인 ──
-export default function ControlPanel() {
-  const [collapsed, setCollapsed] = useState(false);
-  const tabs = ["실시간", "지난 통계", "알림"] as const;
-  const [tab, setTab] = useState<(typeof tabs)[number]>("실시간");
-  const [selectedRoom, setSelectedRoom] = useState<number | null>(null);
-  const [roomsLatest, setRoomsLatest] = useState<RoomsLatest>({});
-  const [roomsHistory, setRoomsHistory] = useState<RoomsHistory>({});
-
-  // 데이터 폴링
-  useEffect(() => {
-    const fetchStatus = async () => {
-      try {
-        const res = await fetch("/api/status/rooms");
-        if (!res.ok) throw new Error(await res.text());
-        const data = await res.json();
-        setRoomsLatest(data.rooms);
-        setRoomsHistory(data.history);
-      } catch (e) {
-        console.error(e);
-      }
-    };
-    fetchStatus();
-    const iv = setInterval(fetchStatus, 60000);
-    return () => clearInterval(iv);
-  }, []);
-
-  // 탭별 내용
-  let TabContent;
-  if (tab === "실시간") {
-    TabContent = (
-      <AnimatePresence mode="wait">
-        {selectedRoom == null ? (
-          <motion.div
-            key="room-list"
-            initial={{ opacity: 0, y: 32 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 32 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="flex-1 flex flex-col"
-          >
-            <RoomList roomsLatest={roomsLatest} onSelect={setSelectedRoom} />
-          </motion.div>
-        ) : (
-          <motion.div
-            key={`room-detail-${selectedRoom}`}
-            initial={{ opacity: 0, y: 32 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 32 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="flex-1 flex flex-col"
-          >
-            <RoomDetail
-              room={selectedRoom}
-              roomsLatest={roomsLatest}
-              roomsHistory={roomsHistory}
-              tab={tab}
-              onBack={() => setSelectedRoom(null)}
-              onSelectRoom={setSelectedRoom}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    );
-  } else if (tab === "지난 통계") {
-    TabContent = <StatsTab />;
-  } else {
-    TabContent = <AlertTab />;
-  }
-
-  return (
-    <div className="absolute top-0 left-0 z-20 h-screen p-[16px] pointer-events-none">
-      <div className="pointer-events-auto w-[360px] max-h-full flex flex-col bg-white/50 backdrop-blur-md border border-white/50 rounded-xl shadow-2xl overflow-hidden">
-        {/* ── 헤더 (고정) ── */}
-        <div className="flex items-center justify-between p-3">
-          <div className="flex items-center space-x-3">
-            <PiBuildingApartmentFill className="w-11 h-11 text-white bg-[#FF9D26] p-2 rounded-xl" />
-            <div className="w-[3px] h-7 bg-[#DDDDDD] rounded-md" />
-            <h1 className="text-xl font-semibold">국민대 미래관 5층</h1>
-          </div>
-          <button
-            onClick={() => setCollapsed((prev) => !prev)}
-            className="p-1 rounded-full hover:bg-gray-200"
-          >
-            <PiSidebarSimple className="w-7 h-7 text-[#787878]" />
-          </button>
-        </div>
-
-        {/* ── 본문 ── */}
-        <AnimatePresence initial={false}>
-          {!collapsed && (
-            <motion.div
-              key="body"
-              layout
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "100vh", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.35, ease: "easeInOut" }}
-              style={{ overflow: "hidden" }}
-              className="flex flex-col p-3"
-            >
-              {/* 탭 */}
-              <div className="flex space-x-2 mb-4">
-                {tabs.map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => {
-                      setTab(t);
-                      if (t !== "실시간") setSelectedRoom(null);
-                    }}
-                    className={`flex-1 py-1 text-center font-semibold rounded-md transition ${
-                      tab === t
-                        ? "bg-black text-white"
-                        : "bg-[#DDDDDD] text-[#787878]"
-                    }`}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-              {/* 탭별 내용 */}
-              {TabContent}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </div>
-  );
-}
-
-function CustomRoomSelect({
+function RoomSelectDropdown({
   rooms,
   value,
   onChange,
