@@ -13,11 +13,6 @@ export async function GET() {
     const tokenData = await authRes.json();
     const accessToken = tokenData.access_token as string;
 
-    const response = NextResponse.next();
-    response.cookies.set("tandem_token", accessToken, {
-      httpOnly: true,
-    });
-
     // 2. RVT 파일 읽기
     const filePath = path.join(process.cwd(), "public", "model3.rvt");
     const fileStat = fs.statSync(filePath);

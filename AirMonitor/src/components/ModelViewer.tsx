@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRoomStore } from "@/lib/store";
 import TimeBar from "@/components/TimeBar";
-import Dashboard from "@/components/Dashboard/Dashboard";
 import RemoteToggle from "@/components/Remote/RemoteToggle";
+import Dashboard from "@/components/Dashboard/Dashboard";
+import { ROOM_DBIDS } from "@/lib/modelData";
 import "@/styles/forge_overrides.css";
+import { Color } from "three";
 
 declare global {
   interface Window {
@@ -32,17 +35,40 @@ declare global {
         constructor(container: HTMLDivElement, options?: any);
         start(): boolean;
         loadDocumentNode(document: Document, geometry: any): Promise<void>;
-        finish?(): void;
+        addEventListener(
+          event: string,
+          callback: (eventData: any) => void
+        ): void;
+        isolate(dbIds: number[]): void;
+        fitToView(dbIds: number[]): void;
+        hide(dbIds: number[] | number): void;
+        setThemingColor(dbId: number, color: any): void;
+        clearThemingColors(): void;
+        getObjectTree(onLoaded: (instanceTree: any) => void): void;
       }
+      const SELECTION_CHANGED_EVENT: string;
     }
   }
 }
 
-export default function ModelViewer({ urn }: { urn: string }) {
+export default function ModelViewer({
+  urn,
+}: {
+  urn: string;
+  roomsLatest: Record<
+    number,
+    { temperature: number; humidity: number; occupancy: number }
+  >;
+}) {
   const container = useRef<HTMLDivElement>(null);
+  const viewerRef = useRef<Autodesk.Viewing.GuiViewer3D | null>(null);
+  const ceilingDbIdsRef = useRef<number[]>([]);
   const [ready, setReady] = useState(false);
+  const [modelLoaded, setModelLoaded] = useState(false);
 
-  // Autodesk Viewer 스크립트 로드 대기
+  const selectedRoom = useRoomStore((state) => state.selectedRoom);
+
+  // (1) Forge Viewer 로드 대기
   useEffect(() => {
     const iv = setInterval(() => {
       if (window.Autodesk?.Viewing) {
@@ -53,16 +79,15 @@ export default function ModelViewer({ urn }: { urn: string }) {
     return () => clearInterval(iv);
   }, []);
 
-  // 뷰어 초기화
+  // (2) 뷰어 초기화 및 모델 로드
   useEffect(() => {
     if (!ready || !urn || !container.current) return;
 
-    let viewer: Autodesk.Viewing.GuiViewer3D | undefined;
-
+    let viewer: Autodesk.Viewing.GuiViewer3D | null = null;
     const viewerOptions = {
       env: "AutodeskProduction",
       theme: "dark-theme",
-      extensions: [], // 필요하면 추가
+      extensions: [],
     };
 
     window.Autodesk!.Viewing.Initializer(
@@ -81,21 +106,119 @@ export default function ModelViewer({ urn }: { urn: string }) {
           viewerOptions
         );
         window.forgeViewer = viewer;
+        viewerRef.current = viewer;
         viewer.start();
 
         window.Autodesk!.Viewing.Document.load(
           `urn:${urn}`,
           (doc) => {
             const geom = doc.getRoot().getDefaultGeometry();
-            viewer!.loadDocumentNode(doc, geom);
+            viewer!.loadDocumentNode(doc, geom).then(() => {
+              console.log("Model loaded.");
+              setModelLoaded(true);
+
+              viewer!.getObjectTree((instanceTree: any) => {
+                let ceilingNodeId: number | null = null;
+                instanceTree.enumNodeChildren(
+                  instanceTree.getRootId(),
+                  (dbId: number) => {
+                    const nodeName = instanceTree.getNodeName(dbId);
+                    if (nodeName === "천장") {
+                      ceilingNodeId = dbId;
+                    }
+                  },
+                  true
+                );
+
+                if (ceilingNodeId !== null) {
+                  const idsToHide: number[] = [];
+                  instanceTree.enumNodeChildren(
+                    ceilingNodeId,
+                    (childId: number) => {
+                      idsToHide.push(childId);
+                    },
+                    true
+                  );
+                  ceilingDbIdsRef.current = idsToHide;
+                  if (idsToHide.length > 0) {
+                    viewer!.hide(idsToHide);
+                    console.log("숨긴 '천장' 하위 dbIds:", idsToHide);
+                  }
+                } else {
+                  console.warn("'천장' 노드를 찾지 못했습니다.");
+                }
+
+                viewer!.fitToView([]);
+                console.log("초기 카메라 위치 조정 완료.");
+              });
+
+              viewer!.addEventListener(
+                window.Autodesk!.Viewing.SELECTION_CHANGED_EVENT,
+                (eventData: any) => {
+                  const dbIds: number[] = eventData.dbIdArray || [];
+                  if (dbIds.length > 0) {
+                    console.log("선택된 dbId:", dbIds);
+                  } else {
+                    console.log("선택 해제됨 or 빈 영역 클릭");
+                  }
+                }
+              );
+            });
           },
           (code, msg) => console.error("Model load failed", code, msg)
         );
       }
     );
 
-    return () => viewer?.finish?.();
+    return () => {
+      if (viewer) {
+        viewerRef.current = null;
+        window.forgeViewer = undefined;
+      }
+    };
   }, [ready, urn]);
+
+  // (3) selectedRoom 변경 시 Zoom & Highlight or Reset
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer || !modelLoaded) return;
+
+    const ceilingIds = ceilingDbIdsRef.current;
+
+    if (selectedRoom == null) {
+      viewer.clearThemingColors();
+
+      viewer.isolate([]);
+      viewer.fitToView([]);
+
+      if (ceilingIds.length > 0) {
+        viewer.hide(ceilingIds);
+      }
+      console.log("전체 모델 복원 (방 선택 해제).");
+      return;
+    }
+
+    viewer.clearThemingColors();
+
+    viewer.isolate([]);
+    viewer.fitToView([]);
+
+    if (ceilingIds.length > 0) {
+      viewer.hide(ceilingIds);
+    }
+
+    const dbIds = ROOM_DBIDS[selectedRoom] || [];
+    if (dbIds.length === 0) {
+      console.warn(`매핑된 dbId가 없습니다: ${selectedRoom}호`);
+      return;
+    }
+    viewer.fitToView(dbIds);
+
+    const highlightColor = new Color(1, 1, 0.3);
+    dbIds.forEach((dbId) => viewer.setThemingColor(dbId, highlightColor));
+
+    console.log(`방 ${selectedRoom} zoom & highlight → dbIds:`, dbIds);
+  }, [selectedRoom, modelLoaded]);
 
   return (
     <div
@@ -103,6 +226,7 @@ export default function ModelViewer({ urn }: { urn: string }) {
       id="forgeViewer"
       className="relative w-screen h-screen"
     >
+      {/* 오버레이 UI */}
       <div className="absolute inset-0 pointer-events-none z-10">
         <TimeBar />
         <Dashboard />

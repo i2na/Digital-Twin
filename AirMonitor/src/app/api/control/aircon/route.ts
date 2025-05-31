@@ -16,11 +16,11 @@ export async function POST(req: NextRequest) {
   }
 
   let body: {
-    switch: number;
-    setpoint: number;
-    mode: string;
-    fanMode: string;
-    optionalMode: string;
+    switch: number; // 1 = 켬, 0 = 끔
+    setpoint: number; // 희망 온도
+    mode: string; // "cool" | "heat" | "dry" | "wind" | "aIComfort"
+    fanMode: string; // "Auto" | "1" | "2" | ... | "max"
+    optionalMode: string; // "off" | "energySaving" | "windFree" | "sleep" | "windFreeSleep" | "speed" | "smart" | "quiet" | "twoStep" | "comfort" | "dlightCool" | "dryComfort" | "cubePurify" | "longWind" | "motionIndirect" | "motionDirect"
   };
   try {
     body = await req.json();
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
   const commands: any[] = [];
 
-  // power on/off
+  // 1) 전원 on/off
   commands.push({
     component: "main",
     capability: "switch",
@@ -41,26 +41,7 @@ export async function POST(req: NextRequest) {
     arguments: [],
   });
 
-  // temperature setpoint
-  if (typeof body.setpoint === "number") {
-    if (body.mode === "heat") {
-      commands.push({
-        component: "main",
-        capability: "thermostatHeatingSetpoint",
-        command: "setHeatingSetpoint",
-        arguments: [body.setpoint],
-      });
-    } else {
-      commands.push({
-        component: "main",
-        capability: "thermostatCoolingSetpoint",
-        command: "setCoolingSetpoint",
-        arguments: [body.setpoint],
-      });
-    }
-  }
-
-  // 운전 모드
+  // 2) 운전 모드 (냉방/난방/제습/송풍/AI 등)
   commands.push({
     component: "main",
     capability: "airConditionerMode",
@@ -68,19 +49,29 @@ export async function POST(req: NextRequest) {
     arguments: [body.mode],
   });
 
-  // 바람세기
+  // 3) 팬 모드: setFanMode (대소문자 주의)
+  //    user가 "auto"를 보냈다면 "Auto"로 변환, 숫자는 그대로 사용
+  const fanArg = body.fanMode === "auto" ? "Auto" : body.fanMode; // "1", "2", "max" 등은 그대로
   commands.push({
     component: "main",
     capability: "airConditionerFanMode",
-    command: "setAirConditionerFanMode",
-    arguments: [body.fanMode],
+    command: "setFanMode",
+    arguments: [fanArg],
   });
 
-  // 부가운전 모드
+  // 4) 온도(냉방) 세트포인트
   commands.push({
     component: "main",
-    capability: "supportedAcOptionalMode",
-    command: "setSupportedAcOptionalMode",
+    capability: "thermostatCoolingSetpoint",
+    command: "setCoolingSetpoint",
+    arguments: [body.setpoint],
+  });
+
+  // 5) 부가 운전 모드 (custom.airConditionerOptionalMode)
+  commands.push({
+    component: "main",
+    capability: "custom.airConditionerOptionalMode",
+    command: "setAcOptionalMode",
     arguments: [body.optionalMode],
   });
 

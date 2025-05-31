@@ -25,7 +25,8 @@
     "react-toastify": "^11.0.3",
     "recharts": "^2.15.3",
     "styled-components": "^6.1.15",
-    "swr": "^2.3.3"
+    "swr": "^2.3.3",
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -33,6 +34,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.176.0",
     "eslint": "^9",
     "eslint-config-next": "15.1.6",
     "postcss": "^8",

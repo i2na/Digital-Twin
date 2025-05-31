@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PiBuildingApartmentFill, PiSidebarSimple } from "react-icons/pi";
 import { motion, AnimatePresence } from "framer-motion";
 import { LiveTab } from "@/components/Dashboard/LiveTab/LiveTab";
@@ -8,11 +8,35 @@ import {
   HistoryTab,
   AlertTab,
 } from "@/components/Dashboard/HistoryTab/HistoryTab";
+import { useRoomStore } from "@/lib/store";
+import { ROOM_DBIDS } from "@/lib/modelData";
 
-export default function ControlPanel() {
+export default function Dashboard() {
   const [collapsed, setCollapsed] = useState(false);
   const tabs = ["실시간", "히스토리", "알림"] as const;
   const [tab, setTab] = useState<(typeof tabs)[number]>("실시간");
+
+  // const setRoomPpd = useRoomStore((state) => state.setRoomPpd);
+  // const setSelectedRoom = useRoomStore((state) => state.setSelectedRoom);
+
+  // useEffect(() => {
+  //   if (tab === "히스토리") {
+  //     setSelectedRoom(null);
+
+  //     const demoPpdValues: Record<number, number> = {
+  //       513: 35,
+  //       515: 72,
+  //       516: 48,
+  //     };
+  //     Object.entries(demoPpdValues).forEach(([roomStr, ppd]) => {
+  //       setRoomPpd(Number(roomStr), ppd);
+  //     });
+  //   } else {
+  //     Object.keys(ROOM_DBIDS).forEach((roomStr) => {
+  //       setRoomPpd(Number(roomStr), 0);
+  //     });
+  //   }
+  // }, [tab, setRoomPpd, setSelectedRoom]);
 
   let TabContent;
   if (tab === "실시간") {

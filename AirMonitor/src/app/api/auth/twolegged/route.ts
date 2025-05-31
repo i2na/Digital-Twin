@@ -20,10 +20,18 @@ export async function GET() {
     );
     const token = await authClient.authenticate();
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       access_token: token.access_token,
       expires_in: token.expires_in,
     });
+
+    response.cookies.set("tandem_token", token.access_token, {
+      httpOnly: true,
+      path: "/",
+      maxAge: token.expires_in,
+    });
+
+    return response;
   } catch (error: any) {
     console.error("GET /api/auth/twolegged error:", error);
     return NextResponse.json(

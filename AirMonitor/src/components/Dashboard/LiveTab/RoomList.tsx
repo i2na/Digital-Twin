@@ -1,17 +1,15 @@
-export function RoomList({
-  roomsLatest,
-  onSelect,
-}: {
-  roomsLatest: RoomsLatest;
-  onSelect: (room: number) => void;
-}) {
+import { useRoomStore } from "@/lib/store";
+
+export function RoomList({ roomsLatest }: { roomsLatest: RoomsLatest }) {
+  const setSelectedRoom = useRoomStore((state) => state.setSelectedRoom);
+
   return (
     <div className="flex flex-col gap-3 flex-1">
       <div className="text-[#878787] font-bold text-lg ml-1">공간별 상태</div>
       {Object.entries(roomsLatest).map(([room, info]) => (
         <button
           key={room}
-          onClick={() => onSelect(Number(room))}
+          onClick={() => setSelectedRoom(Number(room))}
           className="bg-white rounded-xl p-4 shadow flex flex-col items-start hover:bg-gray-50 transition"
         >
           <div className="text-[#969696] text-lg font-semibold mb-2">
