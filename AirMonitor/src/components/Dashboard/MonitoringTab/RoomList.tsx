@@ -1,6 +1,7 @@
-import { useRoomStore } from "@/lib/store";
+import { useRoomStore } from "@/lib/stores";
 
-export function RoomList({ roomsLatest }: { roomsLatest: RoomsLatest }) {
+export function RoomList() {
+  const roomsLatest = useRoomStore((state) => state.roomsLatest);
   const setSelectedRoom = useRoomStore((state) => state.setSelectedRoom);
 
   return (

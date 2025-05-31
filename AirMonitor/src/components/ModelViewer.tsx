@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRoomStore } from "@/lib/store";
+import { useRoomStore } from "@/lib/stores";
 import TimeBar from "@/components/TimeBar";
 import RemoteToggle from "@/components/Remote/RemoteToggle";
 import Dashboard from "@/components/Dashboard/Dashboard";

@@ -1,4 +1,3 @@
-// components/Dashboard/LiveTab/LiveTab.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,19 +6,19 @@ import { fetcher } from "@/lib/fetcher";
 import { motion, AnimatePresence } from "framer-motion";
 import { RoomList } from "./RoomList";
 import { RoomDetail } from "./RoomDetail";
-import { useRoomStore } from "@/lib/store";
+import { useRoomStore } from "@/lib/stores";
 
 interface StatusResponse {
   rooms: Record<number, { temperature: number; humidity: number }>;
   history: any;
 }
 
-export function LiveTab() {
+export function MonitoringTab() {
   const { data } = useSWR<StatusResponse>("/api/status/rooms", fetcher, {
     refreshInterval: 60000,
   });
   const rawRooms = data?.rooms ?? {};
-  const roomsLatest = Object.entries(rawRooms).reduce(
+  const computedRoomsLatest = Object.entries(rawRooms).reduce(
     (acc, [roomStr, info]) => {
       const roomNum = Number(roomStr);
       acc[roomNum] = {
@@ -29,18 +28,19 @@ export function LiveTab() {
       };
       return acc;
     },
-    {} as RoomsLatest
+    {} as Record<
+      number,
+      { temperature: number; humidity: number; occupancy: number }
+    >
   );
   const roomsHistory = data?.history ?? {};
-  const [localSelectedRoom, setLocalSelectedRoom] = useState<number | null>(
-    null
-  );
-  const selectedRoom = useRoomStore((state) => state.selectedRoom);
+  const localSelectedRoom = useRoomStore((state) => state.selectedRoom);
   const setSelectedRoom = useRoomStore((state) => state.setSelectedRoom);
+  const setRoomsLatest = useRoomStore((state) => state.setRoomsLatest);
 
   useEffect(() => {
-    setLocalSelectedRoom(selectedRoom);
-  }, [selectedRoom]);
+    setRoomsLatest(computedRoomsLatest);
+  }, [data]);
 
   return (
     <AnimatePresence mode="wait">
@@ -53,7 +53,7 @@ export function LiveTab() {
           transition={{ duration: 0.3, ease: "easeOut" }}
           className="flex-1 flex flex-col"
         >
-          <RoomList roomsLatest={roomsLatest} />
+          <RoomList />
         </motion.div>
       ) : (
         <motion.div
@@ -66,7 +66,6 @@ export function LiveTab() {
         >
           <RoomDetail
             room={localSelectedRoom}
-            roomsLatest={roomsLatest}
             roomsHistory={roomsHistory}
             onBack={() => setSelectedRoom(null)}
             onSelectRoom={(roomNum) => setSelectedRoom(roomNum)}

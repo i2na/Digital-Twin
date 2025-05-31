@@ -3,18 +3,16 @@
 import { useState, useEffect } from "react";
 import { PiBuildingApartmentFill, PiSidebarSimple } from "react-icons/pi";
 import { motion, AnimatePresence } from "framer-motion";
-import { LiveTab } from "@/components/Dashboard/LiveTab/LiveTab";
-import {
-  HistoryTab,
-  AlertTab,
-} from "@/components/Dashboard/HistoryTab/HistoryTab";
-import { useRoomStore } from "@/lib/store";
+import { MonitoringTab } from "@/components/Dashboard/MonitoringTab/MonitoringTab";
+import { AnalysisReportTab } from "@/components/Dashboard/AnalysisReportTab/AnalysisReportTab";
+import { AlertTab } from "@/components/Dashboard/AlertTab/AlertTab";
+import { useRoomStore } from "@/lib/stores";
 import { ROOM_DBIDS } from "@/lib/modelData";
 
 export default function Dashboard() {
   const [collapsed, setCollapsed] = useState(false);
-  const tabs = ["실시간", "히스토리", "알림"] as const;
-  const [tab, setTab] = useState<(typeof tabs)[number]>("실시간");
+  const tabs = ["모니터링", "분석 리포트", "알림"] as const;
+  const [tab, setTab] = useState<(typeof tabs)[number]>("모니터링");
 
   // const setRoomPpd = useRoomStore((state) => state.setRoomPpd);
   // const setSelectedRoom = useRoomStore((state) => state.setSelectedRoom);
@@ -39,10 +37,10 @@ export default function Dashboard() {
   // }, [tab, setRoomPpd, setSelectedRoom]);
 
   let TabContent;
-  if (tab === "실시간") {
-    TabContent = <LiveTab />;
-  } else if (tab === "히스토리") {
-    TabContent = <HistoryTab />;
+  if (tab === "모니터링") {
+    TabContent = <MonitoringTab />;
+  } else if (tab === "분석 리포트") {
+    TabContent = <AnalysisReportTab />;
   } else {
     TabContent = <AlertTab />;
   }

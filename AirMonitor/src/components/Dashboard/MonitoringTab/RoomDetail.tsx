@@ -1,4 +1,6 @@
-import { useState, useEffect, memo, useRef } from "react";
+"use client";
+
+import { useEffect, memo } from "react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -12,29 +14,41 @@ import {
 } from "recharts";
 import { motion } from "framer-motion";
 import { IoPeople } from "react-icons/io5";
-import { FiChevronLeft, FiChevronDown } from "react-icons/fi";
+import { FiChevronLeft } from "react-icons/fi";
+import { useRoomStore } from "@/lib/stores";
+import { RoomSelectDropdown } from "./RoomSelectDropdown";
+
+interface Point {
+  time: string;
+  value: number;
+}
+
+interface RoomsHistory {
+  [room: number]: { temperature: Point[]; humidity: Point[] };
+}
 
 export function RoomDetail({
   room,
-  roomsLatest,
   roomsHistory,
   onBack,
   onSelectRoom,
 }: {
   room: number;
-  roomsLatest: RoomsLatest;
   roomsHistory: RoomsHistory;
   onBack: () => void;
   onSelectRoom: (room: number) => void;
 }) {
-  const latest = roomsLatest[room];
+  const latest = useRoomStore((state) => state.roomsLatest)[room];
+
   const historyData = roomsHistory[room] || { temperature: [], humidity: [] };
   const tempData = historyData.temperature;
   const humData = historyData.humidity;
 
+  const roomKeys = Object.keys(useRoomStore.getState().roomsLatest);
+
   return (
     <div className="flex flex-col gap-3 flex-1">
-      {/* 방 선택/뒤로가기 영역 */}
+      {/* 1) 상단: 뒤로 가기 버튼 + 방 선택 드롭다운 */}
       <div className="flex items-center gap-2">
         <button
           onClick={onBack}
@@ -46,16 +60,17 @@ export function RoomDetail({
         <div className="bg-white rounded-lg p-3 shadow flex items-center justify-between w-full">
           <span className="text-[#787878] text-base font-medium">공간</span>
           <RoomSelectDropdown
-            rooms={Object.keys(roomsLatest)}
+            rooms={roomKeys}
             value={String(room)}
             onChange={(r) => onSelectRoom(Number(r))}
           />
         </div>
       </div>
-      {/* 인원 */}
+
+      {/* 2) 현재 인원 카드 */}
       <div className="bg-white rounded-lg shadow p-3">
         <p className="text-[#828282] font-medium mb-2 text-base">
-          공간 내 현재인원
+          공간 내 현재 인원
         </p>
         <div className="flex items-center justify-between">
           <IoPeople className="w-10 h-10 text-[#828282]" />
@@ -67,7 +82,8 @@ export function RoomDetail({
           </span>
         </div>
       </div>
-      {/* 온도 차트 */}
+
+      {/* 3) 온도 차트 카드 */}
       <motion.div
         key={`temp-chart-${room}`}
         initial={{ opacity: 0, y: 24 }}
@@ -76,16 +92,17 @@ export function RoomDetail({
         className="bg-white rounded-lg shadow p-3"
       >
         <div className="w-full flex justify-between mb-2">
-          <p className="text-[#828282] text-base ">온도 (°C)</p>
+          <p className="text-[#828282] text-base">온도 (°C)</p>
           {tempData.length > 0
-            ? `${tempData[tempData.length - 1].value}°C`
+            ? `${tempData[tempData.length - 1].value.toFixed(1)}°C`
             : "-"}
         </div>
         <div className="h-36">
           <TempChart tempData={tempData} />
         </div>
       </motion.div>
-      {/* 습도 차트 */}
+
+      {/* 4) 습도 차트 카드 */}
       <motion.div
         key={`hum-chart-${room}`}
         initial={{ opacity: 0, y: 24 }}
@@ -94,8 +111,10 @@ export function RoomDetail({
         className="bg-white rounded-lg shadow p-3 overflow-auto"
       >
         <div className="w-full flex justify-between mb-2">
-          <p className="text-[#828282] text-base ">습도 (%)</p>
-          {humData.length > 0 ? `${humData[humData.length - 1].value}%` : "-"}
+          <p className="text-[#828282] text-base">습도 (%)</p>
+          {humData.length > 0
+            ? `${humData[humData.length - 1].value.toFixed(0)}%`
+            : "-"}
         </div>
         <div className="h-36">
           <HumChart humData={humData} />
@@ -183,7 +202,6 @@ const TempChart = memo(function TempChart({ tempData }: { tempData: Point[] }) {
   );
 });
 
-// 습도 차트도 같은 패턴
 const HumChart = memo(function HumChart({ humData }: { humData: Point[] }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -261,55 +279,3 @@ const HumChart = memo(function HumChart({ humData }: { humData: Point[] }) {
     </ResponsiveContainer>
   );
 });
-
-function RoomSelectDropdown({
-  rooms,
-  value,
-  onChange,
-}: {
-  rooms: string[];
-  value: string;
-  onChange: (room: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center bg-transparent text-lg font-bold text-black cursor-pointer focus:outline-none"
-      >
-        {value}호
-        <FiChevronDown className="ml-3 text-gray-400" />
-      </button>
-      {open && (
-        <div className="absolute z-10 top-[32px] mt-2 right-[-12px] w-[96px] bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden animate-fadein">
-          {rooms.map((r) => (
-            <button
-              key={r}
-              className={`w-full text-left px-4 py-2 text-base hover:bg-gray-100 ${
-                r === value ? "bg-gray-100 font-semibold" : ""
-              }`}
-              onClick={() => {
-                onChange(r);
-                setOpen(false);
-              }}
-            >
-              {r}호
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
