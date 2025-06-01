@@ -25,6 +25,9 @@ export default {
       maxHeight: {
         screen: "100dvh",
       },
+      boxShadow: {
+        block: "0 2px 6px rgba(0, 0, 0, 0.2)",
+      },
     },
   },
   plugins: [],

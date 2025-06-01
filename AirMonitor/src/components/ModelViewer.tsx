@@ -96,10 +96,13 @@ export default function ModelViewer({
     if (!ready || !urn || !container.current) return;
 
     let viewer: Autodesk.Viewing.GuiViewer3D | null = null;
+
+    // viewerOptions에 useConsolidation을 켜서 성능을 개선
     const viewerOptions = {
       env: "AutodeskProduction",
       theme: "dark-theme",
       extensions: [],
+      useConsolidation: true,
     };
 
     window.Autodesk!.Viewing.Initializer(
@@ -120,7 +123,12 @@ export default function ModelViewer({
         window.forgeViewer = viewer;
         viewerRef.current = viewer;
 
+        // 품질을 낮추고 progressive rendering을 켜서 버퍼링 없이 부드럽게
         viewer.setQualityLevel("low");
+        if ((viewer as any).setProgressiveRendering) {
+          // @ts-ignore
+          viewer.setProgressiveRendering(true);
+        }
 
         viewer.start();
 
@@ -132,6 +140,7 @@ export default function ModelViewer({
               console.log("Model loaded.");
               setModelLoaded(true);
 
+              // Object Tree를 한 번만 가져와서 '천장' 아래 자식 노드를 숨김
               viewer!.getObjectTree((instanceTree: any) => {
                 let ceilingNodeId: number | null = null;
                 instanceTree.enumNodeChildren(
@@ -163,10 +172,12 @@ export default function ModelViewer({
                   console.warn("'천장' 노드를 찾지 못했습니다.");
                 }
 
+                // 초기 카메라 위치 조정(전체 모델)
                 viewer!.fitToView([]);
                 console.log("초기 카메라 위치 조정 완료.");
               });
 
+              // 선택 변경 이벤트 리스너: 선택 시 dbId 로깅
               viewer!.addEventListener(
                 window.Autodesk!.Viewing.SELECTION_CHANGED_EVENT,
                 (eventData: any) => {
@@ -185,6 +196,7 @@ export default function ModelViewer({
       }
     );
 
+    // Cleanup: 컴포넌트 언마운트 시 viewer 레퍼런스 정리
     return () => {
       if (viewer) {
         viewerRef.current = null;
@@ -200,41 +212,47 @@ export default function ModelViewer({
 
     const ceilingIds = ceilingDbIdsRef.current;
 
+    // 이전과 같은 방 선택이면 아무 작업도 하지 않음
     if (selectedRoom === lastSelectedRoom) {
       return;
     }
     setLastSelectedRoom(selectedRoom);
 
+    // 방 해제(전체 모델 복원) 로직
     if (selectedRoom == null) {
+      // 모든 테마 컬러 초기화
       viewer.clearThemingColors();
 
+      // 카메라 자동 이동 파라미터 설정
       if ((viewer as any).autocam?.shotParams) {
-        (viewer as any).autocam.shotParams.destinationPercent = 1.5;
-        (viewer as any).autocam.shotParams.duration = 1.8;
+        (viewer as any).autocam.shotParams.destinationPercent = 1.2;
+        (viewer as any).autocam.shotParams.duration = 2.5;
       }
 
-      viewer.isolate([]);
-      viewer.fitToView([]);
-
+      // 전체 모델 표시 후 천장만 다시 숨김
+      viewer.isolate([]); // 모든 요소 표시
       if (ceilingIds.length > 0) {
         viewer.hide(ceilingIds);
       }
 
-      viewer.impl.sceneUpdated();
+      viewer.fitToView([]);
+
+      // 씬 업데이트 요청
+      viewer.impl.invalidate();
       console.log("전체 모델 복원 (방 선택 해제).");
       return;
     }
 
+    // 특정 방 선택 시 로직
     viewer.clearThemingColors();
 
     if ((viewer as any).autocam?.shotParams) {
-      (viewer as any).autocam.shotParams.destinationPercent = 1.5;
-      (viewer as any).autocam.shotParams.duration = 1.8;
+      (viewer as any).autocam.shotParams.destinationPercent = 1.2;
+      (viewer as any).autocam.shotParams.duration = 2.5;
     }
 
-    viewer.isolate([]);
-    viewer.fitToView([]);
-
+    // 모든 요소 표시→천장 숨김→선택 방으로 카메라 이동→하이라이트 순서로 최소한의 호출만 수행
+    viewer.isolate([]); // 모든 요소 표시
     if (ceilingIds.length > 0) {
       viewer.hide(ceilingIds);
     }
@@ -245,12 +263,15 @@ export default function ModelViewer({
       return;
     }
 
+    // 선택한 방으로 카메라 이동
     viewer.fitToView(dbIds);
 
+    // 선택한 방 요소들에 하이라이트 컬러 적용
     const highlightColor = new Color(1, 1, 0.3);
     dbIds.forEach((dbId) => viewer.setThemingColor(dbId, highlightColor));
 
-    viewer.impl.sceneUpdated();
+    // 씬 업데이트 요청
+    viewer.impl.invalidate();
     console.log(`방 ${selectedRoom} zoom & highlight → dbIds:`, dbIds);
   }, [selectedRoom, modelLoaded, lastSelectedRoom]);
 

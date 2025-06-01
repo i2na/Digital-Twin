@@ -47,3 +47,9 @@ html {
   font-style: normal;
   font-display: swap;
 }
+
+@layer components {
+  .glass-block {
+    @apply bg-white/80 backdrop-blur-sm border border-white/50 shadow-block;
+  }
+}

@@ -27,11 +27,7 @@ export default function TimeBar() {
     .padStart(2, "0")}:${now.getSeconds().toString().padStart(2, "0")}`;
 
   return (
-    <div
-      className="absolute top-4 right-4 z-30 pointer-events-auto
-                 bg-white/60 backdrop-blur-md border border-white/50
-                 shadow-lg rounded-xl px-5 py-2 flex items-center space-x-3"
-    >
+    <div className="absolute top-4 right-4 z-30 pointer-events-auto rounded-xl px-5 py-2 flex items-center space-x-3 glass-block">
       <FiClock className="text-gray-600 w-5 h-5" />
       <span className="text-black text-[17px] font-semibold">
         {dateString} <span className="text-gray-400 font-normal">/</span>{" "}

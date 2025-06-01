@@ -47,7 +47,7 @@ export function RoomDetail({
   const roomKeys = Object.keys(useRoomStore.getState().roomsLatest);
 
   return (
-    <div className="flex flex-col gap-3 flex-1">
+    <div className="flex flex-col gap-[10px] flex-1">
       {/* 1) 상단: 뒤로 가기 버튼 + 방 선택 드롭다운 */}
       <div className="flex items-center gap-2">
         <button
@@ -57,7 +57,7 @@ export function RoomDetail({
         >
           <FiChevronLeft size={24} />
         </button>
-        <div className="bg-white rounded-lg p-3 shadow flex items-center justify-between w-full">
+        <div className="bg-white rounded-lg p-3 shadow-block flex items-center justify-between w-full">
           <span className="text-[#787878] text-base font-medium">공간</span>
           <RoomSelectDropdown
             rooms={roomKeys}
@@ -68,7 +68,7 @@ export function RoomDetail({
       </div>
 
       {/* 2) 현재 인원 카드 */}
-      <div className="bg-white rounded-lg shadow p-3">
+      <div className="bg-white rounded-lg shadow-block p-3">
         <p className="text-[#828282] font-medium mb-2 text-base">
           공간 내 현재 인원
         </p>
@@ -89,7 +89,7 @@ export function RoomDetail({
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="bg-white rounded-lg shadow p-3"
+        className="bg-white rounded-lg shadow-block p-3"
       >
         <div className="w-full flex justify-between mb-2">
           <p className="text-[#828282] text-base">온도 (°C)</p>
@@ -108,7 +108,7 @@ export function RoomDetail({
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="bg-white rounded-lg shadow p-3 overflow-auto"
+        className="bg-white rounded-lg shadow-block p-3 overflow-auto"
       >
         <div className="w-full flex justify-between mb-2">
           <p className="text-[#828282] text-base">습도 (%)</p>

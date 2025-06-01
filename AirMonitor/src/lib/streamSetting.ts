@@ -18,18 +18,23 @@ export const ROOM_STREAMS: Record<
   { streamId: string; tempProp: string; humProp: string }
 > = {
   513: {
-    streamId: "AQAAAGFmZjYzZmU2LWZiZmEtNGUAAAAA",
-    tempProp: "z:Bg",
-    humProp: "z:CQ",
-  },
-  515: {
-    streamId: "AQAAAGMyZDUzNzgzLTIxODYtNDUAAAAA",
-    tempProp: "z:EQ",
-    humProp: "z:Ew",
+    streamId: "AQAAADZmZGEyZTYxLTFmNTUtNDgAAAAA",
+    tempProp: "z:DQ",
+    humProp: "z:Cg",
   },
   516: {
     streamId: "AQAAAGRlMjc2NzlmLWYyOWUtNDYAAAAA",
     tempProp: "z:Eg",
     humProp: "z:FA",
+  },
+  524: {
+    streamId: "AQAAADY0Y2VjOWM4LWM4MzItNDAAAAAA",
+    tempProp: "z:Fg",
+    humProp: "z:FQ",
+  },
+  525: {
+    streamId: "AQAAADliODE1NjFiLTFiYWQtNGUAAAAA",
+    tempProp: "z:EQ",
+    humProp: "z:Ew",
   },
 };

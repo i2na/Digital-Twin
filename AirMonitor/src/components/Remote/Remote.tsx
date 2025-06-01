@@ -134,7 +134,7 @@ export default function Remote({ onClose }: RemotePanelProps) {
 
       {/* 패널 */}
       <div
-        className={`fixed z-50 right-4 bottom-20 w-[330px] bg-white/60 backdrop-blur-md rounded-xl shadow-2xl border border-gray-200 p-3 flex flex-col gap-2
+        className={`fixed z-50 right-4 bottom-[80px] w-[300px] p-2 flex flex-col rounded-xl glass-block
          ${loading ? "opacity-60" : ""}`}
       >
         {loading && (
@@ -148,10 +148,11 @@ export default function Remote({ onClose }: RemotePanelProps) {
         <h3 className="text-center text-lg font-semibold text-gray-600">
           513호 - 드론 스튜디오
         </h3>
-        <div className="h-[2px] bg-[#D9D9D9]"></div>
-        <>
+        <div className="h-[2px] bg-[#D9D9D9] mt-1" />
+        <AutoControlBar />
+        <div className="p-2 flex flex-col gap-2 bg-white rounded-lg">
           {/* 전원 */}
-          <div className="flex items-center justify-between bg-white rounded-md p-3 shadow">
+          <div className="flex items-center justify-between bg-white rounded-md p-3 shadow-block">
             <span className="text-gray-700 font-medium">전원</span>
             <button
               onClick={() => setPower((p) => !p)}
@@ -165,7 +166,7 @@ export default function Remote({ onClose }: RemotePanelProps) {
           </div>
 
           {/* 희망 온도 슬라이더 */}
-          <div className="bg-white rounded-md p-3 shadow">
+          <div className="bg-white rounded-md p-3 shadow-block">
             <div className="flex justify-between items-center mb-2">
               <span className="text-gray-700 font-medium">희망온도</span>
               <span className="text-2xl font-bold">{temp}°C</span>
@@ -196,21 +197,21 @@ export default function Remote({ onClose }: RemotePanelProps) {
 
           <div className="grid grid-cols-2 gap-2">
             {/* 운전 모드 */}
-            <div className="bg-white rounded-md shadow p-3 flex flex-col items-center">
+            <div className="bg-white rounded-md shadow-block p-3 flex flex-col items-center">
               <span className="text-sm text-gray-500 mb-1">모드</span>
               <div className="w-full flex justify-between">
                 <button
                   onClick={() => prev(acModeOptions, acMode, setAcMode)}
-                  className="px-2"
+                  className="pr-2"
                 >
                   <IoIosArrowBack />
                 </button>
-                <div className="mx-2 text-lg font-semibold">
+                <div className="text-lg font-semibold whitespace-nowrap">
                   {acModeMap[acMode]}
                 </div>
                 <button
                   onClick={() => next(acModeOptions, acMode, setAcMode)}
-                  className="px-2"
+                  className="pl-2"
                 >
                   <IoIosArrowForward />
                 </button>
@@ -218,21 +219,21 @@ export default function Remote({ onClose }: RemotePanelProps) {
             </div>
 
             {/* 바람세기 */}
-            <div className="bg-white rounded-md shadow p-3 flex flex-col items-center">
+            <div className="bg-white rounded-md shadow-block p-3 flex flex-col items-center">
               <span className="text-sm text-gray-500 mb-1">바람세기</span>
               <div className="w-full flex justify-between">
                 <button
                   onClick={() => prev(fanModeOptions, fanMode, setFanMode)}
-                  className="px-2"
+                  className="pr-2"
                 >
                   <IoIosArrowBack />
                 </button>
-                <div className="mx-2 text-lg font-semibold">
+                <div className="text-lg font-semibold whitespace-nowrap">
                   {fanModeMap[fanMode]}
                 </div>
                 <button
                   onClick={() => next(fanModeOptions, fanMode, setFanMode)}
-                  className="px-2"
+                  className="pl-2"
                 >
                   <IoIosArrowForward />
                 </button>
@@ -240,41 +241,80 @@ export default function Remote({ onClose }: RemotePanelProps) {
             </div>
 
             {/* 부가운전 */}
-            <div className="col-span-2 bg-white rounded-md shadow p-3 flex flex-col">
+            <div className="col-span-2 bg-white rounded-md shadow-block p-3 flex flex-col">
               <span className="text-sm text-gray-500 mb-1">부가운전</span>
               <div className="flex items-center justify-between">
                 <button
                   onClick={() =>
                     prev(optionalModeOptions, optionalMode, setOptionalMode)
                   }
-                  className="px-2"
+                  className="pr-2"
                 >
                   <IoIosArrowBack />
                 </button>
-                <div className="text-lg font-semibold">
+                <div className="text-lg font-semibold whitespace-nowrap">
                   {optionalModeMap[optionalMode]}
                 </div>
                 <button
                   onClick={() =>
                     next(optionalModeOptions, optionalMode, setOptionalMode)
                   }
-                  className="px-2"
+                  className="pl-2"
                 >
                   <IoIosArrowForward />
                 </button>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* 적용하기 버튼 */}
-          <button
-            onClick={handleApply}
-            className="mt-2 py-2 bg-black text-white rounded-md font-semibold"
-          >
-            적용하기
-          </button>
-        </>
+        {/* 적용하기 버튼 */}
+        <button
+          onClick={handleApply}
+          className="mt-2 py-2 bg-black text-white rounded-lg font-semibold"
+        >
+          적용하기
+        </button>
       </div>
     </>
+  );
+}
+
+function AutoControlBar() {
+  const [secondsElapsed, setSecondsElapsed] = useState(0);
+
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setSecondsElapsed((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(iv);
+  }, []);
+
+  const formatTimer = (sec: number) => {
+    const hours = Math.floor(sec / 3600);
+    const minutes = Math.floor((sec % 3600) / 60);
+    const seconds = sec % 60;
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  };
+
+  return (
+    <div
+      className="
+        w-full py-2 rounded-lg my-2
+        bg-gradient-to-r from-[#323640] to-[#47B3FD]
+        flex items-center justify-between
+        px-4
+      "
+    >
+      <div className="flex items-center gap-2 text-white font-medium">
+        <AiOutlineLoading3Quarters className="animate-spin" size={20} />
+        <span className="text-sm">기기 자동제어 중</span>
+      </div>
+
+      <div className="text-white font-medium text-sm">
+        {formatTimer(secondsElapsed)}
+      </div>
+    </div>
   );
 }

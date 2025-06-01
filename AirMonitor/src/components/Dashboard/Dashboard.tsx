@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { PiBuildingApartmentFill, PiSidebarSimple } from "react-icons/pi";
+import { LuThermometerSun } from "react-icons/lu";
 import { motion, AnimatePresence } from "framer-motion";
 import { MonitoringTab } from "@/components/Dashboard/MonitoringTab/MonitoringTab";
 import { AnalysisReportTab } from "@/components/Dashboard/AnalysisReportTab/AnalysisReportTab";
@@ -47,12 +48,12 @@ export default function Dashboard() {
 
   return (
     <div className="absolute top-0 left-0 z-20 h-screen p-[16px] pointer-events-none">
-      <div className="pointer-events-auto w-[360px] max-h-full flex flex-col bg-white/50 backdrop-blur-md border border-white/50 rounded-xl shadow-2xl overflow-hidden">
+      <div className="pointer-events-auto w-[340px] max-h-full flex flex-col rounded-xl p-3 glass-block">
         {/* ── 헤더 ── */}
-        <div className="flex items-center justify-between p-3">
+        <div className="flex items-center justify-between mb-[14px]">
           <div className="flex items-center space-x-3">
-            <PiBuildingApartmentFill className="w-11 h-11 text-white bg-[#FF9D26] p-2 rounded-xl" />
-            <div className="w-[3px] h-7 bg-[#DDDDDD] rounded-md" />
+            <LuThermometerSun className="w-11 h-11 text-white bg-gradient-to-t from-[#74c4fa] to-[#24A7FF]  p-2 rounded-xl" />
+            <div className="w-[2px] h-7 bg-[#DDDDDD] rounded-md" />
             <h1 className="text-xl font-semibold">국민대 미래관 5층</h1>
           </div>
           <button
@@ -73,8 +74,7 @@ export default function Dashboard() {
               animate={{ height: "100vh", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.35, ease: "easeInOut" }}
-              style={{ overflow: "hidden" }}
-              className="flex flex-col p-3"
+              className="flex flex-col"
             >
               {/* 탭 */}
               <div className="flex space-x-2 mb-4">
