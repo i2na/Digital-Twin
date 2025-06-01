@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MonitoringTab } from "@/components/Dashboard/MonitoringTab/MonitoringTab";
 import { AnalysisReportTab } from "@/components/Dashboard/AnalysisReportTab/AnalysisReportTab";
 import { AlertTab } from "@/components/Dashboard/AlertTab/AlertTab";
-import { useRoomStore } from "@/lib/stores";
+import { useRoomStore } from "@/utils/stores";
 import { ROOM_DBIDS } from "@/lib/modelData";
 
 export default function Dashboard() {

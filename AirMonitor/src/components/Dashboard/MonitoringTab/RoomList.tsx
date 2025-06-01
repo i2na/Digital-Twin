@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useRoomStore } from "@/lib/stores";
+import { useRoomStore } from "@/utils/stores";
 
 export function RoomList() {
   const roomsLatest = useRoomStore((state) => state.roomsLatest);

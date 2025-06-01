@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRoomStore } from "@/lib/stores";
+import { useRoomStore } from "@/utils/stores";
 import { motion } from "framer-motion";
 
 import { BouncingDots } from "./BouncingDots";

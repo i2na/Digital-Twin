@@ -4,9 +4,12 @@ import { useEffect, useState } from "react";
 import DotLoader from "react-spinners/DotLoader";
 import dynamic from "next/dynamic";
 
-const ModelViewer = dynamic(() => import("@/components/ModelViewer"), {
-  ssr: false,
-});
+const ForgeViewer = dynamic(
+  () => import("@/components/ForgeViewer/ForgeViewer"),
+  {
+    ssr: false,
+  }
+);
 
 export default function Page() {
   const [urn, setUrn] = useState("");
@@ -49,5 +52,5 @@ export default function Page() {
     );
   }
 
-  return <ModelViewer urn={urn} />;
+  return <ForgeViewer urn={urn} />;
 }

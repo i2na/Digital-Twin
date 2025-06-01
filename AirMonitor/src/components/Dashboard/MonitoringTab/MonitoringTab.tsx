@@ -6,7 +6,7 @@ import { fetcher } from "@/lib/fetcher";
 import { motion, AnimatePresence } from "framer-motion";
 import { RoomList } from "./RoomList";
 import { RoomDetail } from "./RoomDetail";
-import { useRoomStore } from "@/lib/stores";
+import { useRoomStore } from "@/utils/stores";
 
 interface StatusResponse {
   rooms: Record<number, { temperature: number; humidity: number }>;

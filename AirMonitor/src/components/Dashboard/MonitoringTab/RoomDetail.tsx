@@ -15,7 +15,7 @@ import {
 import { motion } from "framer-motion";
 import { IoPeople } from "react-icons/io5";
 import { FiChevronLeft } from "react-icons/fi";
-import { useRoomStore } from "@/lib/stores";
+import { useRoomStore } from "@/utils/stores";
 import { RoomSelectDropdown } from "./RoomSelectDropdown";
 
 interface Point {
