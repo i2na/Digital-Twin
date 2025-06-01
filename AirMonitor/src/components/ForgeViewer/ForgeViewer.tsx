@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 import ViewerInitializer from "./ViewerInitializer";
-import CeilingHider from "./CeilingHider";
 import RoomSelection from "./RoomSelection";
 import SelectionLogger from "./SelectionLogger";
+import RoomLabels from "./RoomLabels";
 import TimeBar from "@/components/TimeBar";
 import Dashboard from "@/components/Dashboard/Dashboard";
 import RemoteToggle from "@/components/Remote/RemoteToggle";
@@ -38,9 +38,9 @@ export default function ForgeViewer({ urn }: { urn: string }) {
 
       {viewer && modelLoaded && (
         <>
-          <CeilingHider viewer={viewer} />
           <RoomSelection viewer={viewer} modelLoaded={modelLoaded} />
           <SelectionLogger viewer={viewer} />
+          {/* <RoomLabels viewer={viewer} modelLoaded={modelLoaded} /> */}
         </>
       )}
     </div>

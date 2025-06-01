@@ -38,7 +38,7 @@ export function RoomSelectDropdown({
         <FiChevronDown className="ml-2 text-gray-400" />
       </button>
       {open && (
-        <div className="absolute z-10 top-[32px] mt-2 right-0 w-[96px] bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden animate-fadein">
+        <div className="absolute z-10 top-[31px] mt-2 right-[-12px] w-[96px] bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden animate-fadein">
           {rooms.map((r) => (
             <button
               key={r}
