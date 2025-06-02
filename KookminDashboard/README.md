@@ -16,7 +16,7 @@ NEXT_PUBLIC_SMARTTHINGS_DEVICE_ID={SmartThings Device ID}
 ```
 ```bash
 git clone https://github.com/YenaLey/digital-twin.git
-cd digital-twin/KoominDashboard
+cd digital-twin/KookminDashboard
 python3 -m venv venv
 source venv/bin/activate
 pip install pythermalcomfort==2.10.0
