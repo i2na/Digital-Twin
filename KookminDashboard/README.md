@@ -1,4 +1,4 @@
-# KoominDashboard
+# KookminDashboard
 
 ### 국민대학교 미래관 5층 온습도 모니터링 및 에어컨 제어 대시보드
 <img width="1440" alt="스크린샷 2025-06-02 오후 3 02 16" src="https://github.com/user-attachments/assets/fb709330-10c6-4002-a6f2-0b651a9feb16" />
