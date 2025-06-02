@@ -1,3 +1,4 @@
+// global.d.ts  (또는 src/types/forge.d.ts 등, tsconfig.json 에 포함된 전역 선언 파일)
 export {};
 
 declare global {
@@ -46,7 +47,7 @@ declare global {
         clearThemingColors(): void;
         getObjectTree(onLoaded: (instanceTree: InstanceTree) => void): void;
         navigation: unknown;
-        model: ViewerModel;
+        model: ViewerModel; // ← 여기를 보면 ViewerModel 타입이 나옵니다.
         impl: ViewerImpl;
         autocam?: {
           shotParams: {
@@ -61,7 +62,6 @@ declare global {
         setQualityLevel(level: "default" | "low" | "medium" | "high"): void;
         setProgressiveRendering?(enable: boolean): void;
         canvas: HTMLCanvasElement;
-
         worldToClient(worldPt: THREE.Vector3): THREE.Vector3;
       }
 
@@ -84,6 +84,20 @@ declare global {
       }
 
       interface ViewerModel {
+        /**
+         * @param searchText 검색할 문자열
+         * @param onSuccess 성공 시 dbId 배열을 리턴하는 콜백
+         * @param onError 실패 시 호출되는 콜백
+         * @param searchTypes ["name" | "propName" | "propValue" | "dbId" | "leaf"] 등
+         */
+        search(
+          searchText: string,
+          onSuccess: (dbIds: number[]) => void,
+          onError?: (error: any) => void,
+          searchTypes?: string[]
+        ): void;
+
+        // ─────────────────────────────────────────────────────────────
         getFragmentList(): FragmentList;
       }
 

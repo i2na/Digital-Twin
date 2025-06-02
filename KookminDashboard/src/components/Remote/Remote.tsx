@@ -151,19 +151,39 @@ export default function Remote({
 
       toast.success(
         <div>
-          <div>수동 제어</div>
-          <div>온도: {temp}°C</div>
-          <div>모드: {acMode}</div>
-          <div>풍량: {fanMode}</div>
-          <div>부가: {optionalMode}</div>
+          <div
+            style={{
+              fontWeight: "bold",
+              fontSize: "14px",
+              marginBottom: "4px",
+            }}
+          >
+            에어컨을 제어합니다.
+          </div>
+          <div
+            style={{
+              fontWeight: "900",
+              display: "flex",
+              justifyContent: "center",
+              gap: "2px",
+            }}
+          >
+            <span>전원 {power ? "ON" : "OFF"} | </span>
+            <span>온도 {temp}°C | </span>
+            <span>모드 {acMode} | </span>
+            <span>풍량 {fanMode} | </span>
+            <span>부가 {optionalMode}</span>
+          </div>
         </div>,
         {
           duration: 6000,
           style: {
+            width: "600px",
             textAlign: "center",
-            lineHeight: "1.5",
+            lineHeight: "1.6",
+            padding: "6px",
+            fontSize: "13px",
           },
-          icon: "❄️",
         }
       );
 

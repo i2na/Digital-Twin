@@ -9,6 +9,7 @@ import TimeBar from "@/components/TimeBar";
 import Dashboard from "@/components/Dashboard/Dashboard";
 import RemoteToggle from "@/components/Remote/RemoteToggle";
 import "@/styles/forge_overrides.css";
+import RoomDbIdLogger from "./RoomDbIdLogger";
 
 export default function ForgeViewer({ urn }: { urn: string }) {
   const [viewer, setViewer] = useState<Autodesk.Viewing.GuiViewer3D | null>(
@@ -41,6 +42,7 @@ export default function ForgeViewer({ urn }: { urn: string }) {
           <RoomSelection viewer={viewer} modelLoaded={modelLoaded} />
           <SelectionLogger viewer={viewer} />
           {/* <RoomLabels viewer={viewer} modelLoaded={modelLoaded} /> */}
+          <RoomDbIdLogger viewer={viewer} modelLoaded={modelLoaded} />
         </>
       )}
     </div>

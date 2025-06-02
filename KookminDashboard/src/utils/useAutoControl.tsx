@@ -102,19 +102,38 @@ export const useAutoControl = create<AutoRemoteState>((set, get) => ({
     // 5) “자동제어 토스트” 띄우기
     toast.success(
       <div>
-        <div>자동 제어</div>
-        <div>온도: {cmd.setpoint}°C</div>
-        <div>모드: {cmd.mode}</div>
-        <div>풍량: {cmd.fanMode}</div>
-        <div>부가: {cmd.optionalMode}</div>
+        <div
+          style={{
+            fontWeight: "bold",
+            fontSize: "16px",
+            marginBottom: "4px",
+          }}
+        >
+          에어컨을 제어합니다.
+        </div>
+        <div
+          style={{
+            fontWeight: "900",
+            display: "flex",
+            justifyContent: "center",
+            gap: "10px",
+          }}
+        >
+          <span>온도 {cmd.setpoint}°C | </span>
+          <span>모드 {cmd.mode} | </span>
+          <span>풍량 {cmd.fanMode} | </span>
+          <span>부가 {cmd.optionalMode}</span>
+        </div>
       </div>,
       {
         duration: 6000,
         style: {
+          width: "400px",
           textAlign: "center",
-          lineHeight: "1.5",
+          lineHeight: "1.6",
+          padding: "8px",
+          fontSize: "14px",
         },
-        icon: "❄️",
       }
     );
 
@@ -160,6 +179,6 @@ export const useAutoControl = create<AutoRemoteState>((set, get) => ({
     }
     set({ active: false, rest: 0 });
     await fetch("/api/status/aircon");
-    toast("자동 제어가 종료되었습니다.", { icon: "✅" });
+    toast.success("자동 제어가 종료되었습니다.");
   },
 }));
