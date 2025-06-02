@@ -24,7 +24,7 @@ Autodesk Platform Services(APS)용 2-legged 및 3-legged 토큰을 손쉽게 발
   - Next.js + TypeScript
 - 배포 링크 | [https://aps-token-generator.netlify.app](https://aps-token-generator.netlify.app)
 
-### [`KoominDashboard`](https://github.com/YenaLey/digital-twin/tree/main/KoominDashboard)
+### [`KookminDashboard`](https://github.com/YenaLey/digital-twin/tree/main/KookminDashboard)
 
 2025 캡스톤디자인에서 진행한 국민대학교 미래관 5층 디지털 트윈 프로젝트<br />
 각 교실의 온습도를 기반으로 다양한 지표를 시각화하고 자동 에어컨 제어가 가능한 대시보드
