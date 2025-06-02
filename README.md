@@ -14,7 +14,7 @@ ESP32 보드에 연결된 세 개의 LED를 스위치로 순차 제어하며, �
   - Autodesk Forge Viewer
   - Next.js + TypeScript
 
-### [`aps-token-generator`](https://github.com/YenaLey/digital-twin/tree/main/aps-token-generator)
+### [`ApsTokenGenerator`](https://github.com/YenaLey/digital-twin/tree/main/ApsTokenGenerator)
 
 Autodesk Platform Services(APS)용 2-legged 및 3-legged 토큰을 손쉽게 발급할 수 있는 웹 프로젝트입니다.
 
@@ -23,3 +23,16 @@ Autodesk Platform Services(APS)용 2-legged 및 3-legged 토큰을 손쉽게 발
   - APS Auth API
   - Next.js + TypeScript
 - 배포 링크 | [https://aps-token-generator.netlify.app](https://aps-token-generator.netlify.app)
+
+### [`KoominDashboard`](https://github.com/YenaLey/digital-twin/tree/main/KoominDashboard)
+
+2025 캡스톤디자인에서 진행한 국민대학교 미래관 5층 디지털 트윈 프로젝트<br />
+각 교실의 온습도를 기반으로 다양한 지표를 시각화하고 자동 에어컨 제어가 가능한 대시보드
+
+- 풀스택 개발 | [이예나](https://github.com/YenaLey)
+- 임베디드 설계 및 연동 | 박기수, 이인화
+- BIM/UI·UX 디자이너 | 전다빈
+- 사용 기술
+  - Revit
+  - Tandem Connect
+  - Next.js + TypeScript + Autodesk Forge Viewer
