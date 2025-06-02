@@ -40,7 +40,7 @@ Autodesk Platform Services(APS)의 2-legged 및 3-legged 인증 방식을 통해
 
 ```bash
 git clone https://github.com/YenaLey/digital-twin.git
-cd digital-twin/aps-token-generator
+cd digital-twin/ApsTokenGenerator
 npm install
 npm run dev
 ```
