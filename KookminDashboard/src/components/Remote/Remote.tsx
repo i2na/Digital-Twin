@@ -110,6 +110,7 @@ export default function Remote({
         return res.json();
       })
       .then((data) => {
+        console.log("aircon status:", data);
         setPower(data.switch_AC_1 === 1 || data.switch_AC_1 === "on");
         setTemp(data.setpoint_AC_1 ?? temp);
         if (acModeOptions.includes(data.mode_AC_1)) {

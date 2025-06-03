@@ -7,86 +7,22 @@ export function RoomList() {
 
   // 순시 전력 (W)
   const [power513, setPower513] = useState(0);
-  // 구간 평균 전력 (kW)
-  const [energyRate513, setEnergyRate513] = useState(0);
+  // 현재 누적 에너지 (Wh)
+  const [totalEnergy513, setTotalEnergy513] = useState(0);
+  // 전날 자정까지 누적 에너지 (Wh) — API에서 받는 값이라고 가정
+  const [yesterdayEnergy513, setYesterdayEnergy513] = useState<number | null>(
+    null
+  );
 
-  // 이전 누적 에너지(Wh) 저장
-  const prevEnergyRef = useRef<number>(100000);
-  // 이전 타임스탬프(ms) 저장
-  const prevTimeRef = useRef<number>(Date.now());
-
-  // 화면에 보이는지 여부
+  // 화면에 보이는지 여부 (애니메이션용)
   const [isVisible, setIsVisible] = useState(true);
   const room513WrapperRef = useRef<HTMLDivElement>(null);
 
-  // true → 더미, false → 실제 API
+  // true → 더미 모드, false → 실제 API
   const USE_DUMMY = true;
 
   useEffect(() => {
-    if (USE_DUMMY) {
-      // 더미 데이터: 1초마다 임의 전력 생성, 구간 평균 전력 계산
-      const iv = setInterval(() => {
-        const now = Date.now();
-        const simulatedPower = Math.random() * 2000;
-        setPower513(simulatedPower);
-
-        const deltaTimeSec = (now - prevTimeRef.current) / 1000;
-        const deltaEnergyWh = (simulatedPower * deltaTimeSec) / 3600;
-        const newTotalEnergy = prevEnergyRef.current + deltaEnergyWh;
-
-        let avgKW = 0;
-        if (deltaTimeSec > 0) {
-          avgKW = (deltaEnergyWh / deltaTimeSec) * (3600 / 1000);
-        }
-        setEnergyRate513(avgKW);
-
-        prevEnergyRef.current = newTotalEnergy;
-        prevTimeRef.current = now;
-      }, 1000);
-
-      return () => clearInterval(iv);
-    } else {
-      // 실제 API: 1분마다 power_AC_1, energy_AC_1 가져와 구간 평균 전력 계산
-      let mounted = true;
-      const updateData = () => {
-        const now = Date.now();
-        fetch("/api/status/aircon")
-          .then((res) => res.json())
-          .then((data) => {
-            if (!mounted) return;
-            const powerFromApi =
-              typeof data.power_AC_1 === "number" ? data.power_AC_1 : 0;
-            const totalEnergy =
-              typeof data.energy_AC_1 === "number" ? data.energy_AC_1 : 0;
-
-            setPower513(powerFromApi);
-
-            if (prevTimeRef.current) {
-              const deltaEnergyWh = totalEnergy - prevEnergyRef.current;
-              const deltaTimeSec = (now - prevTimeRef.current) / 1000;
-
-              if (deltaEnergyWh >= 0 && deltaTimeSec > 0) {
-                const avgKW = (deltaEnergyWh * 3600) / (deltaTimeSec * 1000);
-                setEnergyRate513(avgKW);
-              }
-            }
-
-            prevEnergyRef.current = totalEnergy;
-            prevTimeRef.current = now;
-          })
-          .catch(() => {});
-      };
-
-      updateData();
-      const iv = setInterval(updateData, 60000);
-      return () => {
-        mounted = false;
-        clearInterval(iv);
-      };
-    }
-  }, [USE_DUMMY]);
-
-  useEffect(() => {
+    // IntersectionObserver 세팅
     const wrapper = room513WrapperRef.current;
     if (!wrapper) return;
 
@@ -98,26 +34,87 @@ export function RoomList() {
       },
       { threshold: 0.3 }
     );
-
     observer.observe(wrapper);
 
-    // 초기 렌더 시 보이는지 확인
     const rect = wrapper.getBoundingClientRect();
     if (rect.top < window.innerHeight && rect.bottom > 0) {
       setIsVisible(true);
     }
-
     return () => observer.disconnect();
   }, []);
 
-  // 최대값 설정
-  const maxPower = 2000; // W → 2.0 kW
-  const maxPowerKW = maxPower / 1000;
-  const maxDailyEstimate = maxPowerKW * 24; // 48 kWh
+  useEffect(() => {
+    if (USE_DUMMY) {
+      // 더미 모드: 1초마다 랜덤 값 할당 (코드 이해용; 배포 시 false로 두세요)
+      const iv = setInterval(() => {
+        const now = Date.now();
+        const simulatedPower = Math.random() * 2000; // W
+        setPower513(simulatedPower);
 
-  const avgPowerPercent = Math.min(energyRate513 / maxPowerKW, 1) * 100;
-  const dailyEstimate = energyRate513 * 24; // kWh
-  const dailyPercent = Math.min(dailyEstimate / maxDailyEstimate, 1) * 100;
+        const simulatedTotalEnergy = Math.random() * 50000; // Wh
+        setTotalEnergy513(simulatedTotalEnergy);
+
+        // 전날 에너지도 24시간 전 랜덤치로 가정
+        setYesterdayEnergy513(simulatedTotalEnergy - Math.random() * 8000);
+      }, 1000);
+      return () => clearInterval(iv);
+    }
+
+    let mounted = true;
+    const updateData = () => {
+      fetch("/api/status/aircon")
+        .then((res) => res.json())
+        .then((data) => {
+          if (!mounted) return;
+
+          // API에서 넘어오는 순간 전력(W)
+          const instantPowerW =
+            typeof data.power_AC_1 === "number" ? data.power_AC_1 : 0;
+          setPower513(instantPowerW);
+
+          // API에서 넘어오는 누적 에너지(Wh)
+          const totalEnergyWh =
+            typeof data.energy_AC_1 === "number" ? data.energy_AC_1 : 0;
+          setTotalEnergy513(totalEnergyWh);
+
+          // API에서 넘어오는 전날 자정까지 누적 에너지(Wh) 가정
+          const yestEnergy =
+            typeof data.yesterday_energy_AC_1 === "number"
+              ? data.yesterday_energy_AC_1
+              : null;
+          setYesterdayEnergy513(yestEnergy);
+        })
+        .catch(() => {
+          // 에러 시 무시
+        });
+    };
+
+    // 첫 호출
+    updateData();
+    // 1분마다 업데이트
+    const iv = setInterval(updateData, 60000);
+    return () => {
+      mounted = false;
+      clearInterval(iv);
+    };
+  }, []);
+
+  // --- 시각화 계산 ---
+  const maxPower = 2000; // W
+  // 실시간 전력 백분율
+  const instantPercent = Math.min(power513 / maxPower, 1) * 100;
+
+  // 전날 대비 에너지 증가량 (Wh)
+  const energyIncreaseWh =
+    yesterdayEnergy513 !== null
+      ? Math.max(totalEnergy513 - yesterdayEnergy513, 0)
+      : 0;
+  // 하루 최대 Wh 기준: 2kW × 24h = 48 kWh = 48,000 Wh
+  const maxDailyWh = maxPower * 24;
+  const increasePercent =
+    yesterdayEnergy513 !== null
+      ? Math.min(energyIncreaseWh / maxDailyWh, 1) * 100
+      : 0;
 
   return (
     <div className="flex flex-col gap-[10px]">
@@ -155,63 +152,75 @@ export function RoomList() {
               ref={room513WrapperRef}
               className="mt-4 w-full flex flex-col gap-4 px-[8.5px]"
             >
-              {/* 최근 평균 전력 */}
+              {/* 1) 현재 실시간 전력 사용률 */}
               <div className="w-full flex flex-col">
                 <div className="flex justify-start items-center mb-1 px-1 gap-2">
                   <span className="text-[#222] font-medium text-base">
-                    최근 평균 전력
+                    현재 실시간 전력
                   </span>
                   <div className="h-[13px] w-[1px] bg-[#CDCECE]" />
                   <span className="text-[#0097FF] font-bold text-lg">
-                    {energyRate513.toFixed(2)}{" "}
-                    <span className="text-black">kW</span>
+                    {power513.toFixed(0)} <span className="text-black">W</span>
                   </span>
                 </div>
                 <div className="flex items-center">
                   <div className="w-[97%] h-2 bg-[#DCE5EA] rounded overflow-hidden m-auto">
                     <div
-                      className="h-2 rounded transition-all duration-1000 ease-out"
+                      className="h-2 rounded transition-all duration-500 ease-out"
                       style={{
-                        width: isVisible ? `${avgPowerPercent}%` : "0%",
+                        width: isVisible ? `${instantPercent}%` : "0%",
                         background:
-                          "linear-gradient(90deg, #0088E4 0%, #47B3FD 100%)",
+                          "linear-gradient(90deg, #FF8C00 0%, #FFD54F 100%)",
                       }}
                     />
                   </div>
                   <span className="ml-2 text-[#b9c1c6] font-medium text-[10px] whitespace-nowrap">
-                    {maxPowerKW.toFixed(1)} kW
+                    {(maxPower / 1000).toFixed(1)} kW
                   </span>
                 </div>
               </div>
 
-              {/* 예상 일일 전력량 */}
-              <div className="w-full flex flex-col">
-                <div className="flex justify-start items-center mb-1 px-1 gap-2">
-                  <span className="text-[#222] font-medium text-base">
-                    예상 일일 전력량
-                  </span>
-                  <div className="h-[13px] w-[1px] bg-[#CDCECE]" />
-                  <span className="text-[#0097FF] font-bold text-lg">
-                    {dailyEstimate.toFixed(2)}{" "}
-                    <span className="text-black">kWh</span>
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-[97%] h-2 bg-[#DCE5EA] rounded overflow-hidden m-auto">
-                    <div
-                      className="h-2 rounded transition-all duration-1000 ease-out"
-                      style={{
-                        width: isVisible ? `${dailyPercent}%` : "0%",
-                        background:
-                          "linear-gradient(90deg, #0088E4 0%, #47B3FD 100%)",
-                      }}
-                    />
-                  </div>
-                  <span className="ml-2 text-[#b9c1c6] font-medium text-[10px] whitespace-nowrap">
-                    {maxDailyEstimate.toFixed(0)} kWh
-                  </span>
-                </div>
+              {/* 2) 누적 에너지 (숫자만 표시) */}
+              <div className="flex justify-between items-center px-1">
+                <span className="text-[#222] font-medium text-base">
+                  총 누적 에너지
+                </span>
+                <span className="text-[#0097FF] font-bold text-lg">
+                  {totalEnergy513.toFixed(0)}{" "}
+                  <span className="text-black">Wh</span>
+                </span>
               </div>
+
+              {/* 3) 전날 대비 에너지 증가량 (API에서 값이 없거나 0이면 숨김) */}
+              {yesterdayEnergy513 !== null && yesterdayEnergy513 > 0 && (
+                <div className="w-full flex flex-col">
+                  <div className="flex justify-start items-center mb-1 px-1 gap-2">
+                    <span className="text-[#222] font-medium text-base">
+                      전날 대비 증가량
+                    </span>
+                    <div className="h-[13px] w-[1px] bg-[#CDCECE]" />
+                    <span className="text-[#0097FF] font-bold text-lg">
+                      {energyIncreaseWh.toFixed(0)}{" "}
+                      <span className="text-black">Wh</span>
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-[97%] h-2 bg-[#DCE5EA] rounded overflow-hidden m-auto">
+                      <div
+                        className="h-2 rounded transition-all duration-1000 ease-out"
+                        style={{
+                          width: isVisible ? `${increasePercent}%` : "0%",
+                          background:
+                            "linear-gradient(90deg, #0088E4 0%, #47B3FD 100%)",
+                        }}
+                      />
+                    </div>
+                    <span className="ml-2 text-[#b9c1c6] font-medium text-[10px] whitespace-nowrap">
+                      {Math.round(maxDailyWh)} Wh
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </button>

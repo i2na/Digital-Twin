@@ -12,9 +12,20 @@ export async function POST(request: NextRequest) {
     }
 
     const job = {
-      input: { urn },
+      input: {
+        urn,
+      },
       output: {
-        formats: [{ type: "svf", views: ["2d", "3d"] }],
+        formats: [
+          {
+            type: "svf",
+            views: ["3d"],
+            advanced: {
+              generateMasterViews: true,
+              includeRoomGeometry: true,
+            },
+          },
+        ],
       },
     };
 

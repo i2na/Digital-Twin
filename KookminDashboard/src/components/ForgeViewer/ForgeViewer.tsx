@@ -1,21 +1,39 @@
+// src/components/ForgeViewer/ForgeViewer.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ViewerInitializer from "./ViewerInitializer";
 import RoomSelection from "./RoomSelection";
 import SelectionLogger from "./SelectionLogger";
-import RoomLabels from "./RoomLabels";
+import RoomDbIdLogger from "./RoomDbIdLogger";
 import TimeBar from "@/components/TimeBar";
 import Dashboard from "@/components/Dashboard/Dashboard";
 import RemoteToggle from "@/components/Remote/RemoteToggle";
-import "@/styles/forge_overrides.css";
-import RoomDbIdLogger from "./RoomDbIdLogger";
+import "@/styles/forge-overrides.css";
 
 export default function ForgeViewer({ urn }: { urn: string }) {
   const [viewer, setViewer] = useState<Autodesk.Viewing.GuiViewer3D | null>(
     null
   );
   const [modelLoaded, setModelLoaded] = useState(false);
+
+  // ──────────────────────────────────────────────────────────────────────────────
+  // onViewerReady 와 onModelLoaded 콜백을 useCallback 으로 감싸서, ViewerInitializer 에
+  // props로 전달될 때 매번 새로운 함수 객체가 생성되지 않게 만듭니다.
+  // (이렇게 해야 ViewerInitializer 의 useEffect 의존성 배열이 바뀌지 않아서
+  //  viewer 재초기화가 반복적으로 발생하지 않습니다.)
+  // ──────────────────────────────────────────────────────────────────────────────
+  const handleViewerReady = useCallback(
+    (inst: Autodesk.Viewing.GuiViewer3D) => {
+      setViewer(inst);
+    },
+    []
+  );
+
+  const handleModelLoaded = useCallback(() => {
+    setModelLoaded(true);
+  }, []);
+  // ──────────────────────────────────────────────────────────────────────────────
 
   return (
     <div className="relative w-screen h-screen">
@@ -26,8 +44,8 @@ export default function ForgeViewer({ urn }: { urn: string }) {
       >
         <ViewerInitializer
           urn={urn}
-          onViewerReady={(inst) => setViewer(inst)}
-          onModelLoaded={() => setModelLoaded(true)}
+          onViewerReady={handleViewerReady}
+          onModelLoaded={handleModelLoaded}
         />
       </div>
 
@@ -41,8 +59,7 @@ export default function ForgeViewer({ urn }: { urn: string }) {
         <>
           <RoomSelection viewer={viewer} modelLoaded={modelLoaded} />
           <SelectionLogger viewer={viewer} />
-          {/* <RoomLabels viewer={viewer} modelLoaded={modelLoaded} /> */}
-          <RoomDbIdLogger viewer={viewer} modelLoaded={modelLoaded} />
+          {/* <RoomDbIdLogger viewer={viewer} modelLoaded={modelLoaded} /> */}
         </>
       )}
     </div>

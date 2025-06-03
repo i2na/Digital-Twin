@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PiSidebarSimple } from "react-icons/pi";
 import { LuThermometerSun } from "react-icons/lu";
 import { motion, AnimatePresence } from "framer-motion";
 import { MonitoringTab } from "@/components/Dashboard/MonitoringTab/MonitoringTab";
 import { AnalysisReportTab } from "@/components/Dashboard/AnalysisReportTab/AnalysisReportTab";
-import { AlertTab } from "@/components/Dashboard/AlertTab/AlertTab";
+import { HeatmapTab } from "@/components/Dashboard/HeatmapTab/HeatmapTab";
 
 export default function Dashboard() {
   const [collapsed, setCollapsed] = useState(false);
-  const tabs = ["모니터링", "분석 리포트", "알림"] as const;
+  const tabs = ["모니터링", "분석 리포트", "히트맵"] as const;
   const [tab, setTab] = useState<(typeof tabs)[number]>("모니터링");
 
   let TabContent: React.ReactNode;
@@ -19,8 +19,15 @@ export default function Dashboard() {
   } else if (tab === "분석 리포트") {
     TabContent = <AnalysisReportTab />;
   } else {
-    TabContent = <AlertTab />;
+    TabContent = <HeatmapTab />;
   }
+
+  useEffect(() => {
+    if (tab === "히트맵" && window.forgeViewer) {
+      window.forgeViewer.clearThemingColors();
+      window.forgeViewer.fitToView();
+    }
+  }, [tab]);
 
   return (
     <div className="absolute top-0 left-0 z-20 h-screen pointer-events-none p-4">

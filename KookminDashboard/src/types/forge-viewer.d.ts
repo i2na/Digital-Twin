@@ -1,4 +1,4 @@
-// global.d.ts  (또는 src/types/forge.d.ts 등, tsconfig.json 에 포함된 전역 선언 파일)
+// src/types/forge-viewer.d.ts
 export {};
 
 declare global {
@@ -30,8 +30,14 @@ declare global {
 
       class GuiViewer3D {
         constructor(container: HTMLDivElement, options?: any);
+
+        // 뷰어 시작
         start(): boolean;
+
+        // Document load & geometry load
         loadDocumentNode(document: Document, geometry: any): Promise<void>;
+
+        // 이벤트리스너 등록/해제
         addEventListener(
           event: string,
           callback: (eventData: any) => void
@@ -40,21 +46,32 @@ declare global {
           event: string,
           callback: (eventData: any) => void
         ): void;
+
+        // 오브젝트 하이라이트, 줌, 숨김
         isolate(dbIds: number[]): void;
-        fitToView(dbIds: number[]): void;
+        // fitToView의 매개변수를 optional로 수정
+        fitToView(dbIds?: number[]): void;
         hide(dbIds: number[] | number): void;
+
+        // 테마 색상 설정/초기화
         setThemingColor(dbId: number, color: any): void;
         clearThemingColors(): void;
+
+        // Object tree 및 관련 API
         getObjectTree(onLoaded: (instanceTree: InstanceTree) => void): void;
         navigation: unknown;
-        model: ViewerModel; // ← 여기를 보면 ViewerModel 타입이 나옵니다.
+        model: ViewerModel; // 실제 search, getBulkProperties 등을 제공
         impl: ViewerImpl;
+
+        // 카메라 앵글 변경 시
         autocam?: {
           shotParams: {
             destinationPercent: number;
             duration: number;
           };
         };
+
+        // 렌더링 옵션
         prefs: {
           set(name: string, value: boolean | number | string): void;
           get(name: string): boolean | number | string | undefined;
@@ -63,10 +80,38 @@ declare global {
         setProgressiveRendering?(enable: boolean): void;
         canvas: HTMLCanvasElement;
         worldToClient(worldPt: THREE.Vector3): THREE.Vector3;
+
+        // **아래 두 메서드를 추가 선언합니다!**
+        search?(
+          searchText: string,
+          onSuccess: (dbIds: number[]) => void,
+          onError?: (error: any) => void,
+          searchTypes?: string[]
+        ): void;
+
+        getBulkProperties?(
+          dbIds: number[],
+          propertyNames: string[],
+          onSuccess: (
+            elements: Array<{
+              dbId: number;
+              properties: Array<{
+                displayName: string;
+                displayValue: string;
+              }>;
+            }>
+          ) => void,
+          onError?: (error: any) => void
+        ): void;
+
+        // **loadExtension를 선언합니다! (Promise 기반)**
+        loadExtension<T = any>(extensionId: string, options?: any): Promise<T>;
+        unloadExtension(extensionId: string): Promise<void>;
       }
 
       const CAMERA_CHANGE_EVENT: string;
       const SELECTION_CHANGED_EVENT: string;
+      const GEOMETRY_LOADED_EVENT: string;
 
       interface InstanceTree {
         enumNodeChildren(
@@ -84,12 +129,6 @@ declare global {
       }
 
       interface ViewerModel {
-        /**
-         * @param searchText 검색할 문자열
-         * @param onSuccess 성공 시 dbId 배열을 리턴하는 콜백
-         * @param onError 실패 시 호출되는 콜백
-         * @param searchTypes ["name" | "propName" | "propValue" | "dbId" | "leaf"] 등
-         */
         search(
           searchText: string,
           onSuccess: (dbIds: number[]) => void,
@@ -97,12 +136,31 @@ declare global {
           searchTypes?: string[]
         ): void;
 
-        // ─────────────────────────────────────────────────────────────
+        getBulkProperties(
+          dbIds: number[],
+          propertyNames: string[],
+          onSuccess: (
+            elements: Array<{
+              dbId: number;
+              properties: Array<{
+                displayName: string;
+                displayValue: string;
+              }>;
+            }>
+          ) => void,
+          onError?: (error: any) => void
+        ): void;
+
         getFragmentList(): FragmentList;
+        setThemingColor(dbId: number, color: any): void;
       }
 
       interface FragmentList {
         getGeometry(fragmentId: number): Geometry | null;
+        getWorldBounds(
+          fragmentId: number,
+          callback: (box: THREE.Box3) => void
+        ): void;
       }
 
       interface FragmentProxy {
@@ -122,9 +180,16 @@ declare global {
         addOverlay(sceneName: string, mesh: THREE.Object3D): void;
         createOverlayScene(sceneName: string): void;
         overlayScenes: Record<string, boolean>;
-        invalidate(force?: boolean): void;
+
+        // invalidate도 세 개 매개변수까지 허용
+        invalidate(
+          force?: boolean,
+          rebuild?: boolean,
+          overlayDirty?: boolean
+        ): void;
+
         sceneUpdated(): void;
-        getFragmentProxy(model: ViewerModel, fragId: number): FragmentProxy;
+        getRenderProxy(model: ViewerModel, fragId: number): FragmentProxy;
       }
     }
   }
