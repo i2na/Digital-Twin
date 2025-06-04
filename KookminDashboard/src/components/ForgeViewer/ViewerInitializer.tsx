@@ -16,12 +16,7 @@ export default function ViewerInitializer({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!urn || !containerRef.current) {
-      console.warn(
-        "[ViewerInitializer] urn 또는 containerRef가 유효하지 않습니다."
-      );
-      return;
-    }
+    if (!urn || !containerRef.current) return;
 
     let viewer: Autodesk.Viewing.GuiViewer3D | null = null;
 
@@ -36,15 +31,14 @@ export default function ViewerInitializer({
       {
         env: viewerOptions.env,
         getAccessToken: async (cb) => {
-          try {
-            const { access_token, expires_in } = await fetch(
-              "/api/auth/twolegged"
-            ).then((r) => r.json());
-            console.log("[ViewerInitializer] AccessToken 취득 성공");
-            cb(access_token, expires_in);
-          } catch (err) {
-            console.error("[ViewerInitializer] AccessToken 취득 중 오류:", err);
-          }
+          const { access_token, expires_in } = await fetch(
+            "/api/auth/twolegged"
+          )
+            .then((r) => r.json())
+            .catch((err) => {
+              console.error("토큰 요청 실패:", err);
+            });
+          if (access_token) cb(access_token, expires_in);
         },
       },
       () => {
@@ -54,61 +48,63 @@ export default function ViewerInitializer({
           viewerOptions
         );
         window.forgeViewer = viewer;
-        console.log("[ViewerInitializer] GuiViewer3D 인스턴스 생성됨.");
 
         // 3) 품질 및 렌더링 최적화
-        viewer.setQualityLevel("low"); // 렌더링 품질을 낮춰서 성능 높임
+        viewer.setQualityLevel("low");
         if ((viewer as any).setProgressiveRendering) {
-          // 프로그레시브 렌더링 활성화 (메모리 부하 줄이면서 로드)
           // @ts-ignore
           viewer.setProgressiveRendering(true);
         }
 
         // 4) 뷰어 실행
         viewer.start();
-        console.log("[ViewerInitializer] viewer.start() 호출됨.");
 
-        // 5) 필수 최적화 옵션: 불필요한 섀도우·반사·안티앨리어싱 해제
+        // 5) 최적화 옵션 해제 (ambientShadows, antialiasing 등)
         try {
           viewer.prefs.set("ambientShadows", false);
           viewer.prefs.set("antialiasing", false);
           viewer.prefs.set("groundShadow", false);
           viewer.prefs.set("groundReflection", false);
-        } catch (er) {
-          console.warn(
-            "[ViewerInitializer] 최적화 prefs 중 일부 설정 실패:",
-            er
-          );
+        } catch {
+          /** ignore */
         }
 
-        // 6) 환경(Environment) 설정
+        // 6) lightPreset 설정
         try {
           viewer.prefs.set("lightPreset", 17);
-        } catch (er) {
-          console.warn("[ViewerInitializer] lightPreset 설정 실패:", er);
+        } catch {
+          /** ignore */
         }
 
         // 7) 모델 로드
         window.Autodesk!.Viewing.Document.load(
           `urn:${urn}`,
           (doc) => {
-            console.log("[ViewerInitializer] Document.load 성공:", urn);
             const root = doc.getRoot();
             const geom = root.getDefaultGeometry();
-            viewer!.loadDocumentNode(doc, geom).then(() => {
-              console.log(
-                "[ViewerInitializer] 모델 로드 후 loadDocumentNode 완료."
-              );
-              onModelLoaded();
-            });
+            viewer!
+              .loadDocumentNode(doc, geom)
+              .then(() => {
+                // 7-1) GEOMETRY_LOADED_EVENT 이후에만 setThemingColor 호출
+                viewer!.addEventListener(
+                  Autodesk.Viewing.GEOMETRY_LOADED_EVENT,
+                  function onGeomLoaded() {
+                    // 한 번만 실행되도록 리스너 해제
+                    viewer!.removeEventListener(
+                      Autodesk.Viewing.GEOMETRY_LOADED_EVENT,
+                      onGeomLoaded
+                    );
+
+                    onModelLoaded();
+                  }
+                );
+              })
+              .catch((err) => {
+                console.error("loadDocumentNode 중 오류:", err);
+              });
           },
           (code, msg) => {
-            console.error(
-              "[ViewerInitializer] Document.load 실패 코드:",
-              code,
-              "메시지:",
-              msg
-            );
+            console.error("Document.load 실패:", code, msg);
           }
         );
 
@@ -117,11 +113,9 @@ export default function ViewerInitializer({
       }
     );
 
-    // Cleanup: 컴포넌트 언마운트 시 Viewer 인스턴스 해제
     return () => {
       if (viewer) {
         window.forgeViewer = undefined;
-        console.log("[ViewerInitializer] cleanup: viewer 인스턴스 해제됨.");
       }
     };
   }, [urn]);

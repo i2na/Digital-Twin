@@ -23,9 +23,13 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    if (tab === "히트맵" && window.forgeViewer) {
-      window.forgeViewer.clearThemingColors();
-      window.forgeViewer.fitToView();
+    const viewer = (window as any).forgeViewer as Autodesk.Viewing.GuiViewer3D;
+    if (!viewer) return;
+    if (tab === "히트맵") {
+      viewer.prefs.set("lightPreset", 18);
+    } else {
+      viewer.prefs.set("lightPreset", 17);
+      viewer.clearThemingColors(viewer.model);
     }
   }, [tab]);
 

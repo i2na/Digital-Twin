@@ -7,7 +7,7 @@
 export function interpretPPD(ppd: number): string {
   if (ppd < 10) return "쾌적";
   if (ppd < 25) return "약간 불만";
-  return "불만 (재조정 필요)";
+  return "불만";
 }
 
 /**

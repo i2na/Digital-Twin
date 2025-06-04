@@ -60,8 +60,8 @@ export function PPDCard({ ppd, pmv, loading }: PPDCardProps) {
               </motion.div>
             ) : (
               <>
-                <p className="text-2xl font-bold text-gray-900">{status}</p>
-                <p className="text-lg text-gray-700">
+                <p className="text-[20px] font-bold text-gray-900">{status}</p>
+                <p className="text-[15px] text-gray-700">
                   <AnimatedValue value={ppd} suffix="%" />
                 </p>
               </>

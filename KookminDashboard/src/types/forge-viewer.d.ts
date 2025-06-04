@@ -1,4 +1,3 @@
-// src/types/forge-viewer.d.ts
 export {};
 
 declare global {
@@ -37,7 +36,7 @@ declare global {
         // Document load & geometry load
         loadDocumentNode(document: Document, geometry: any): Promise<void>;
 
-        // 이벤트리스너 등록/해제
+        // 이벤트 리스너 등록/해제
         addEventListener(
           event: string,
           callback: (eventData: any) => void
@@ -49,18 +48,31 @@ declare global {
 
         // 오브젝트 하이라이트, 줌, 숨김
         isolate(dbIds: number[]): void;
-        // fitToView의 매개변수를 optional로 수정
         fitToView(dbIds?: number[]): void;
         hide(dbIds: number[] | number): void;
 
-        // 테마 색상 설정/초기화
-        setThemingColor(dbId: number, color: any): void;
-        clearThemingColors(): void;
+        // 테마 색상 설정/초기화 (네 인자 시그니처)
+        setThemingColor(
+          dbId: number,
+          color: any,
+          model: ViewerModel,
+          recursive: boolean
+        ): void;
+        clearThemingColors(model: ViewerModel): void;
+
+        // 선택(Selection) 관련 API
+        setSelectionColor(color: any, selectionType: number): void;
+        select(
+          dbIds: number[] | number,
+          model: ViewerModel,
+          selectionType: number
+        ): void;
+        clearSelection(): void;
 
         // Object tree 및 관련 API
         getObjectTree(onLoaded: (instanceTree: InstanceTree) => void): void;
         navigation: unknown;
-        model: ViewerModel; // 실제 search, getBulkProperties 등을 제공
+        model: ViewerModel;
         impl: ViewerImpl;
 
         // 카메라 앵글 변경 시
@@ -81,7 +93,7 @@ declare global {
         canvas: HTMLCanvasElement;
         worldToClient(worldPt: THREE.Vector3): THREE.Vector3;
 
-        // **아래 두 메서드를 추가 선언합니다!**
+        // 검색/속성 조회
         search?(
           searchText: string,
           onSuccess: (dbIds: number[]) => void,
@@ -104,7 +116,7 @@ declare global {
           onError?: (error: any) => void
         ): void;
 
-        // **loadExtension를 선언합니다! (Promise 기반)**
+        // 확장 기능 로드/언로드
         loadExtension<T = any>(extensionId: string, options?: any): Promise<T>;
         unloadExtension(extensionId: string): Promise<void>;
       }
@@ -112,6 +124,13 @@ declare global {
       const CAMERA_CHANGE_EVENT: string;
       const SELECTION_CHANGED_EVENT: string;
       const GEOMETRY_LOADED_EVENT: string;
+
+      // SelectionType 열거값
+      const SelectionType: {
+        MIXED: number;
+        REGULAR: number;
+        OVERLAYED: number;
+      };
 
       interface InstanceTree {
         enumNodeChildren(
@@ -152,7 +171,12 @@ declare global {
         ): void;
 
         getFragmentList(): FragmentList;
-        setThemingColor(dbId: number, color: any): void;
+        setThemingColor(
+          dbId: number,
+          color: any,
+          model: ViewerModel,
+          recursive: boolean
+        ): void;
       }
 
       interface FragmentList {
@@ -181,7 +205,10 @@ declare global {
         createOverlayScene(sceneName: string): void;
         overlayScenes: Record<string, boolean>;
 
-        // invalidate도 세 개 매개변수까지 허용
+        visibilityManager: {
+          show(dbId: number, model: ViewerModel): void;
+        };
+
         invalidate(
           force?: boolean,
           rebuild?: boolean,

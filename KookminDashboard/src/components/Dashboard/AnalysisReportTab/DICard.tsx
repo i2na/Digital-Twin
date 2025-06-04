@@ -37,8 +37,8 @@ export function DICard({ di, loading }: DICardProps) {
           <div className="absolute inset-0 flex flex-col items-center justify-end pointer-events-none">
             {!loading && (
               <>
-                <p className="text-2xl font-bold text-gray-900">{status}</p>
-                <p className="text-lg text-gray-700">
+                <p className="text-[20px] font-bold text-gray-900">{status}</p>
+                <p className="text-[15px] text-gray-700">
                   <AnimatedValue value={di} />
                 </p>
               </>
