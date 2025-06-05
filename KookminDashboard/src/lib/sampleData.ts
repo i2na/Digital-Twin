@@ -41,25 +41,25 @@ function generateRandomSeries(
 
 export const FALLBACK_ROOMS = {
   rooms: {
-    "512": { temperature: 22.7, humidity: 46.1, occupancy: 19 },
-    "513": { temperature: 23.1, humidity: 50.2, occupancy: 12 },
-    "514": { temperature: 21.9, humidity: 48.7, occupancy: 9 },
-    "515": { temperature: 24.0, humidity: 46.5, occupancy: 14 },
+    "513": { temperature: 22.7, humidity: 46.1, occupancy: 19 },
+    "516": { temperature: 23.1, humidity: 50.2, occupancy: 12 },
+    "524": { temperature: 21.9, humidity: 48.7, occupancy: 9 },
+    "525": { temperature: 24.0, humidity: 46.5, occupancy: 14 },
   },
   history: {
-    "512": {
+    "513": {
       temperature: generateRandomSeries(70, 8, 0, 20, 3),
       humidity: generateRandomSeries(70, 8, 0, 60, 8),
     },
-    "513": {
+    "516": {
       temperature: generateRandomSeries(70, 8, 0, 21, 2.5),
       humidity: generateRandomSeries(70, 8, 0, 55, 7),
     },
-    "514": {
+    "524": {
       temperature: generateRandomSeries(70, 8, 0, 19, 4),
       humidity: generateRandomSeries(70, 8, 0, 50, 6),
     },
-    "515": {
+    "525": {
       temperature: generateRandomSeries(70, 8, 0, 23, 2),
       humidity: generateRandomSeries(70, 8, 0, 65, 9),
     },

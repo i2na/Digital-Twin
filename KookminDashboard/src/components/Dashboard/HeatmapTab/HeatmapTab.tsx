@@ -19,28 +19,29 @@ export function HeatmapTab() {
     const viewer = getViewer();
     if (!viewer) return;
     const THREE_INTERNAL = (window as any).THREE;
-    viewer.prefs.set("lightPreset", 18);
+    viewer.setBackgroundColor(0, 0, 0, 0, 0, 0);
     viewer.clearThemingColors(viewer.model);
 
     Object.keys(ROOM_DBIDS).forEach((key) => {
       const roomNum = Number(key);
       const roomInfo = roomsLatest[roomNum];
-      let colorHex = "#24A7FF";
+      let colorHex = "#00F0FF";
       if (roomInfo) {
         const di = calculateDiscomfortIndex(
           roomInfo.temperature,
           roomInfo.humidity
         );
-        if (di < 68) colorHex = "#24A7FF";
-        else if (di < 72) colorHex = "#FFA508";
-        else if (di < 75) colorHex = "#FF952B";
-        else colorHex = "#FD6A00";
+        if (di < 65) colorHex = "#00F0FF";
+        else if (di < 70) colorHex = "#00FFA3";
+        else if (di < 75) colorHex = "#FFD700";
+        else if (di < 80) colorHex = "#FF6F61";
+        else colorHex = "#FF3D00";
       }
       const hex = colorHex.replace("#", "");
       const r = parseInt(hex.substring(0, 2), 16) / 255;
       const g = parseInt(hex.substring(2, 4), 16) / 255;
       const b = parseInt(hex.substring(4, 6), 16) / 255;
-      const a = 0.6;
+      const a = 0.8;
       const colorVec = new THREE_INTERNAL.Vector4(r, g, b, a);
 
       ROOM_DBIDS[roomNum].forEach((dbId) => {
@@ -50,14 +51,13 @@ export function HeatmapTab() {
     });
 
     if (DEFAULT_DBIDS.length) {
-      const baseHex = "#FFFFFF";
-      const hex = baseHex.replace("#", "");
-      const br = parseInt(hex.substring(0, 2), 16) / 255;
-      const bg = parseInt(hex.substring(2, 4), 16) / 255;
-      const bb = parseInt(hex.substring(4, 6), 16) / 255;
-      const ba = 0.5;
-      const baseVec = new THREE_INTERNAL.Vector4(br, bg, bb, ba);
-
+      const baseColor = new THREE_INTERNAL.Color(0xf0f3ff);
+      const baseVec = new THREE_INTERNAL.Vector4(
+        baseColor.r,
+        baseColor.g,
+        baseColor.b,
+        0.8
+      );
       DEFAULT_DBIDS.forEach((dbId) => {
         viewer.impl.visibilityManager.show(dbId, viewer.model);
         viewer.setThemingColor(dbId, baseVec, viewer.model, true);
@@ -74,9 +74,9 @@ export function HeatmapTab() {
       modelLoadedRef.current = true;
       applyHeatmapWithTheming();
     };
-    viewer.prefs.set("lightPreset", 18);
     viewer.clearThemingColors(viewer.model);
     viewer.fitToView();
+    viewer.setBackgroundColor(0, 0, 0, 0, 0, 0);
     viewer.addEventListener(
       Autodesk.Viewing.GEOMETRY_LOADED_EVENT,
       onGeomLoaded
@@ -85,7 +85,10 @@ export function HeatmapTab() {
     if (instTree) onGeomLoaded();
     return () => {
       const v = getViewer();
-      if (v) v.clearThemingColors(v.model);
+      if (v) {
+        v.clearThemingColors(v.model);
+        v.setBackgroundColor(255, 255, 255, 255, 255, 255);
+      }
       viewer.removeEventListener(
         Autodesk.Viewing.GEOMETRY_LOADED_EVENT,
         onGeomLoaded
@@ -134,9 +137,7 @@ export function HeatmapTab() {
           }}
           onClick={() => handleSelectRoom(room)}
         >
-          <span style={{ fontSize: "18px", fontWeight: 900, color: "#333" }}>
-            {room}호
-          </span>
+          <span style={{ fontSize: "18px", fontWeight: 900 }}>{room}호</span>
           <DICard di={di} loading={false} />
         </div>
       ))}

@@ -26,9 +26,9 @@ export default function Dashboard() {
     const viewer = (window as any).forgeViewer as Autodesk.Viewing.GuiViewer3D;
     if (!viewer) return;
     if (tab === "히트맵") {
-      viewer.prefs.set("lightPreset", 18);
+      viewer.prefs.set("lightPreset", 17); // 산책로(18)
     } else {
-      viewer.prefs.set("lightPreset", 17);
+      viewer.prefs.set("lightPreset", 17); // 필드(17)
       viewer.clearThemingColors(viewer.model);
     }
   }, [tab]);

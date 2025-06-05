@@ -56,14 +56,14 @@ def auto_control(
     SETPT = float(state_now.get("setpoint", T))
 
     DI_now      = di(T, RH)
-    DI_target   = 67.0          # 쾌적 상한
-    THR_START   = 72.0          # 제어 트리거(‘불쾌’부터)
+    DI_target   = 69.0          # 쾌적 상한
+    THR_START   = 75.0          # 제어 트리거(‘불쾌’부터)
     T_min       = 22.0          # 희망온도 하한
     RH_rate     = 5.0           # 제습 1 h당 %RH 감소 경험계수
 
     # ─ 1. 개입 필요 여부 ─────────────────────
     if DI_now < THR_START:
-        return "skip"             # ‘주의’(71 이하)면 그냥 둠
+        return "skip"            
 
     # ─ 2. 필요한 DI 감소량 ───────────────────
     delta_DI = DI_now - DI_target

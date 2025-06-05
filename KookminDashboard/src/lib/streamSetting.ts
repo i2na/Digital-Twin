@@ -15,12 +15,18 @@ export const AC_PROPERTIES: Record<string, string> = {
 // /api/status/rooms
 export const ROOM_STREAMS: Record<
   string,
-  { streamId: string; tempProp: string; humProp: string }
+  {
+    streamId: string;
+    tempProp: string;
+    humProp: string;
+    occupancyProp?: string;
+  }
 > = {
   513: {
     streamId: "AQAAADZmZGEyZTYxLTFmNTUtNDgAAAAA",
     tempProp: "z:DQ",
     humProp: "z:Cg",
+    occupancyProp: "z:11",
   },
   516: {
     streamId: "AQAAAGRlMjc2NzlmLWYyOWUtNDYAAAAA",

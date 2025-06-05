@@ -88,7 +88,7 @@ export const useAutoControl = create<AutoRemoteState>((set, get) => ({
     const cmd: AutoCmd | "skip" = await res.json();
     if (cmd === "skip") {
       set({ active: false });
-      toast("자동 제어가 필요하지 않습니다.", { icon: "ℹ️" });
+      toast.error("자동 제어가 필요하지 않습니다.");
       return;
     }
 

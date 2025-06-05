@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import useSWR from "swr";
 import { motion, AnimatePresence } from "framer-motion";
 import { RoomList } from "./RoomList";
@@ -8,7 +8,10 @@ import { RoomDetail } from "./RoomDetail";
 import { useRoomStore } from "@/utils/useRoomStore";
 
 interface StatusResponse {
-  rooms: Record<number, { temperature: number; humidity: number }>;
+  rooms: Record<
+    number,
+    { temperature: number; humidity: number; occupancy?: number }
+  >;
   history: any;
 }
 
@@ -29,7 +32,7 @@ export function MonitoringTab() {
       acc[roomNum] = {
         temperature: info.temperature,
         humidity: info.humidity,
-        occupancy: 0,
+        occupancy: info.occupancy ?? 0,
       };
       return acc;
     },

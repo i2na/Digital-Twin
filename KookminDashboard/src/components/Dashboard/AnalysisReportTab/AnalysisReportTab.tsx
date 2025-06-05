@@ -107,15 +107,15 @@ export function AnalysisReportTab() {
 
   useEffect(() => {
     // DI가 72 이상일 때, 아직 자동 시작이 안 된 상태라면 한 번만 실행
-    if (discomfortIndex >= 72 && !hasAutoStarted.current) {
+    if (discomfortIndex >= 75 && !hasAutoStarted.current) {
       openPanel();
       startAuto(ta, rh, 24);
       hasAutoStarted.current = true;
     }
-    // DI가 72 미만으로 내려가면 다시 re-allow
-    if (discomfortIndex < 72) {
-      hasAutoStarted.current = false;
-    }
+    // // DI가 72 미만으로 내려가면 다시 re-allow
+    // if (discomfortIndex < 72) {
+    //   hasAutoStarted.current = false;
+    // }
   }, [discomfortIndex, ta, rh]);
 
   const hiStatus = interpretHI(heatIndex);

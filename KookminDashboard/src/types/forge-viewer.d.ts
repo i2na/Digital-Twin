@@ -30,13 +30,9 @@ declare global {
       class GuiViewer3D {
         constructor(container: HTMLDivElement, options?: any);
 
-        // 뷰어 시작
         start(): boolean;
-
-        // Document load & geometry load
         loadDocumentNode(document: Document, geometry: any): Promise<void>;
 
-        // 이벤트 리스너 등록/해제
         addEventListener(
           event: string,
           callback: (eventData: any) => void
@@ -46,21 +42,18 @@ declare global {
           callback: (eventData: any) => void
         ): void;
 
-        // 오브젝트 하이라이트, 줌, 숨김
         isolate(dbIds: number[]): void;
         fitToView(dbIds?: number[]): void;
         hide(dbIds: number[] | number): void;
 
-        // 테마 색상 설정/초기화 (네 인자 시그니처)
         setThemingColor(
           dbId: number,
           color: any,
-          model: ViewerModel,
-          recursive: boolean
+          model?: ViewerModel,
+          recursive?: boolean
         ): void;
-        clearThemingColors(model: ViewerModel): void;
+        clearThemingColors(model?: ViewerModel): void;
 
-        // 선택(Selection) 관련 API
         setSelectionColor(color: any, selectionType: number): void;
         select(
           dbIds: number[] | number,
@@ -69,13 +62,11 @@ declare global {
         ): void;
         clearSelection(): void;
 
-        // Object tree 및 관련 API
         getObjectTree(onLoaded: (instanceTree: InstanceTree) => void): void;
         navigation: unknown;
         model: ViewerModel;
         impl: ViewerImpl;
 
-        // 카메라 앵글 변경 시
         autocam?: {
           shotParams: {
             destinationPercent: number;
@@ -83,7 +74,6 @@ declare global {
           };
         };
 
-        // 렌더링 옵션
         prefs: {
           set(name: string, value: boolean | number | string): void;
           get(name: string): boolean | number | string | undefined;
@@ -93,14 +83,12 @@ declare global {
         canvas: HTMLCanvasElement;
         worldToClient(worldPt: THREE.Vector3): THREE.Vector3;
 
-        // 검색/속성 조회
         search?(
           searchText: string,
           onSuccess: (dbIds: number[]) => void,
           onError?: (error: any) => void,
           searchTypes?: string[]
         ): void;
-
         getBulkProperties?(
           dbIds: number[],
           propertyNames: string[],
@@ -116,16 +104,23 @@ declare global {
           onError?: (error: any) => void
         ): void;
 
-        // 확장 기능 로드/언로드
         loadExtension<T = any>(extensionId: string, options?: any): Promise<T>;
         unloadExtension(extensionId: string): Promise<void>;
+
+        setBackgroundColor(
+          r: number,
+          g: number,
+          b: number,
+          r2: number,
+          g2: number,
+          b2: number
+        ): void;
       }
 
       const CAMERA_CHANGE_EVENT: string;
       const SELECTION_CHANGED_EVENT: string;
       const GEOMETRY_LOADED_EVENT: string;
 
-      // SelectionType 열거값
       const SelectionType: {
         MIXED: number;
         REGULAR: number;
@@ -154,7 +149,6 @@ declare global {
           onError?: (error: any) => void,
           searchTypes?: string[]
         ): void;
-
         getBulkProperties(
           dbIds: number[],
           propertyNames: string[],
@@ -169,7 +163,6 @@ declare global {
           ) => void,
           onError?: (error: any) => void
         ): void;
-
         getFragmentList(): FragmentList;
         setThemingColor(
           dbId: number,
@@ -185,13 +178,19 @@ declare global {
           fragmentId: number,
           callback: (box: THREE.Box3) => void
         ): void;
+        fragments: {
+          fragId2dbId: Record<number, number>;
+        };
       }
 
       interface FragmentProxy {
         dbId: number;
-        getAnimTransform(): void;
         updateAnimTransform(): void;
         worldMatrix: THREE.Matrix4;
+        material: {
+          opacity: number;
+          transparent: boolean;
+        };
       }
 
       interface Geometry {
@@ -204,17 +203,14 @@ declare global {
         addOverlay(sceneName: string, mesh: THREE.Object3D): void;
         createOverlayScene(sceneName: string): void;
         overlayScenes: Record<string, boolean>;
-
         visibilityManager: {
           show(dbId: number, model: ViewerModel): void;
         };
-
         invalidate(
           force?: boolean,
           rebuild?: boolean,
           overlayDirty?: boolean
         ): void;
-
         sceneUpdated(): void;
         getRenderProxy(model: ViewerModel, fragId: number): FragmentProxy;
       }

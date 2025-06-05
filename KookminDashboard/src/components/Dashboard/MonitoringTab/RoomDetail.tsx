@@ -76,7 +76,7 @@ export function RoomDetail({
           <IoPeople className="w-10 h-10 text-[#828282]" />
           <span className="text-lg text-gray-700">
             <span className="text-4xl font-bold text-gray-900 mr-3">
-              {latest?.occupancy ?? 0}
+              {latest?.occupancy}
             </span>
             명
           </span>

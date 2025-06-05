@@ -13,11 +13,13 @@ export function DICard({ di, loading }: DICardProps) {
   const status = interpretDI(di);
   const showWarning = di >= 72;
 
-  let gaugeColor = "#24A7FF";
-  if (di < 68) gaugeColor = "#24A7FF";
-  else if (di < 72) gaugeColor = "#FFA508";
-  else if (di < 75) gaugeColor = "#FF952B";
-  else gaugeColor = "#FD6A00";
+  let gaugeColor = "#00F0FF";
+
+  if (di < 65) gaugeColor = "#00F0FF";
+  else if (di < 70) gaugeColor = "#00FFA3";
+  else if (di < 75) gaugeColor = "#FFD700";
+  else if (di < 80) gaugeColor = "#FF6F61";
+  else gaugeColor = "#FF3D00";
 
   return (
     <div className="bg-white rounded-lg shadow-block p-4">
@@ -47,13 +49,15 @@ export function DICard({ di, loading }: DICardProps) {
         </div>
 
         <div className="text-xs text-[#8E8E8E] leading-relaxed text-start">
-          ~67: 쾌적
+          ~64: 매우 쾌적
           <br />
-          68~71: 주의
+          65~69: 쾌적
           <br />
-          72~74: 불쾌
+          70~74: 주의
           <br />
-          75~: 매우 불쾌
+          75~79: 불쾌
+          <br />
+          80~: 매우 불쾌
         </div>
       </div>
     </div>

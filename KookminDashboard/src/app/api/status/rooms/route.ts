@@ -39,19 +39,25 @@ export async function GET(req: NextRequest) {
 
   const roomsLatest: Record<
     string,
-    { temperature: number | null; humidity: number | null; occupancy?: number }
+    {
+      temperature: number | null;
+      humidity: number | null;
+      occupancy?: number | null;
+    }
   > = {};
   const roomsHistory: Record<
     string,
     {
       temperature: Array<{ time: string; value: number }>;
       humidity: Array<{ time: string; value: number }>;
+      occupancy?: Array<{ time: string; value: number }>;
     }
   > = {};
 
-  for (const [room, { streamId, tempProp, humProp }] of Object.entries(
-    ROOM_STREAMS
-  )) {
+  for (const [
+    room,
+    { streamId, tempProp, humProp, occupancyProp },
+  ] of Object.entries(ROOM_STREAMS)) {
     const { times: tTimes, values: tVals } = await fetchAllPoints(
       streamId,
       tempProp,
@@ -63,9 +69,21 @@ export async function GET(req: NextRequest) {
       token
     );
 
+    let occVal: number | null = null;
+    let oTimes: number[] = [];
+    let oVals: number[] = [];
+
+    if (occupancyProp) {
+      const oResult = await fetchAllPoints(streamId, occupancyProp, token);
+      oTimes = oResult.times;
+      oVals = oResult.values;
+      occVal = oVals.length ? oVals[oVals.length - 1] : null;
+    }
+
     roomsLatest[room] = {
       temperature: tVals.length ? tVals[tVals.length - 1] : null,
       humidity: hVals.length ? hVals[hVals.length - 1] : null,
+      ...(occupancyProp ? { occupancy: occVal } : {}),
     };
 
     roomsHistory[room] = {
@@ -87,6 +105,19 @@ export async function GET(req: NextRequest) {
         }),
         value: hVals[i],
       })),
+      ...(occupancyProp
+        ? {
+            occupancy: oTimes.map((ts, i) => ({
+              time: new Date(ts).toLocaleTimeString("ko-KR", {
+                timeZone: "Asia/Seoul",
+                hour12: false,
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              value: oVals[i],
+            })),
+          }
+        : {}),
     };
   }
 
