@@ -7,16 +7,12 @@
   <img alt="image" src="https://github.com/user-attachments/assets/fb709330-10c6-4002-a6f2-0b651a9feb16" width="44%"/>
 </div>
 
----
-
 ## 시스템 구성
 
 본 대시보드는 국민대학교 교실 내 설치된 온습도 센서 및 SmartThings 에어컨을 기반으로 실시간 에너지 모니터링과 제어 기능을 제공합니다.
 
 - 실내 온습도 센서 또는 SmartThings 에어컨 → Tandem → 웹 대시보드
 - 대시보드 제어 → SmartThings 에어컨
-
----
 
 ## 기능 구성
 
