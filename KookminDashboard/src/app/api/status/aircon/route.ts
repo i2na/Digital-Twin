@@ -2,8 +2,8 @@ import { NextResponse, NextRequest } from "next/server";
 import { FALLBACK_AIRCON } from "@/lib/sampleData";
 import { AC_STREAM_ID, AC_PROPERTIES } from "@/lib/streamSetting";
 
-const MODEL_URN = process.env.NEXT_PUBLIC_MODEL_URN as string;
-const USE_TANDEM = process.env.NEXT_PUBLIC_TANDEM_ENABLED === "true";
+const FACILITY_URN = process.env.NEXT_PUBLIC_FACILITY_URN as string;
+const USE_AIRCON = process.env.NEXT_PUBLIC_AIRCON_ENABLED === "true";
 
 const SWITCH_MAP: Record<number, string> = {
   2: "on",
@@ -41,7 +41,7 @@ async function fetchAllProperties(
   token: string
 ): Promise<Record<string, Record<string, number>>> {
   const res = await fetch(
-    `https://tandem.autodesk.com/api/v1/timeseries/models/${MODEL_URN}/streams/${streamId}`,
+    `https://tandem.autodesk.com/api/v1/timeseries/models/${FACILITY_URN}/streams/${streamId}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
   if (!res.ok) return {};
@@ -49,14 +49,14 @@ async function fetchAllProperties(
 }
 
 export async function GET(req: NextRequest) {
-  if (!USE_TANDEM) {
+  if (!USE_AIRCON) {
     return NextResponse.json(FALLBACK_AIRCON);
   }
   const token = req.cookies.get("tandem_token")?.value;
   if (!token) {
     return NextResponse.json({ error: "Missing token" }, { status: 401 });
   }
-  if (!MODEL_URN) {
+  if (!FACILITY_URN) {
     return NextResponse.json({ error: "Missing URN" }, { status: 400 });
   }
 

@@ -9,20 +9,17 @@ export function RoomList() {
   const [power513, setPower513] = useState(0);
   // 현재 누적 에너지 (Wh)
   const [totalEnergy513, setTotalEnergy513] = useState(0);
-  // 전날 자정까지 누적 에너지 (Wh) — API에서 받는 값이라고 가정
+  // 전날 자정까지 누적 에너지 (Wh)
   const [yesterdayEnergy513, setYesterdayEnergy513] = useState<number | null>(
     null
   );
 
-  // 화면에 보이는지 여부 (애니메이션용)
   const [isVisible, setIsVisible] = useState(true);
   const room513WrapperRef = useRef<HTMLDivElement>(null);
 
-  // true → 더미 모드, false → 실제 API
-  const USE_DUMMY = true;
+  const USE_AIRCON = process.env.NEXT_PUBLIC_AIRCON_ENABLED === "true";
 
   useEffect(() => {
-    // IntersectionObserver 세팅
     const wrapper = room513WrapperRef.current;
     if (!wrapper) return;
 
@@ -44,8 +41,7 @@ export function RoomList() {
   }, []);
 
   useEffect(() => {
-    if (USE_DUMMY) {
-      // 더미 모드: 1초마다 랜덤 값 할당 (코드 이해용; 배포 시 false로 두세요)
+    if (!USE_AIRCON) {
       const iv = setInterval(() => {
         const now = Date.now();
         const simulatedPower = Math.random() * 2000; // W
@@ -54,7 +50,6 @@ export function RoomList() {
         const simulatedTotalEnergy = Math.random() * 50000; // Wh
         setTotalEnergy513(simulatedTotalEnergy);
 
-        // 전날 에너지도 24시간 전 랜덤치로 가정
         setYesterdayEnergy513(simulatedTotalEnergy - Math.random() * 8000);
       }, 1000);
       return () => clearInterval(iv);
@@ -67,31 +62,24 @@ export function RoomList() {
         .then((data) => {
           if (!mounted) return;
 
-          // API에서 넘어오는 순간 전력(W)
           const instantPowerW =
             typeof data.power_AC_1 === "number" ? data.power_AC_1 : 0;
           setPower513(instantPowerW);
 
-          // API에서 넘어오는 누적 에너지(Wh)
           const totalEnergyWh =
             typeof data.energy_AC_1 === "number" ? data.energy_AC_1 : 0;
           setTotalEnergy513(totalEnergyWh);
 
-          // API에서 넘어오는 전날 자정까지 누적 에너지(Wh) 가정
           const yestEnergy =
             typeof data.yesterday_energy_AC_1 === "number"
               ? data.yesterday_energy_AC_1
               : null;
           setYesterdayEnergy513(yestEnergy);
         })
-        .catch(() => {
-          // 에러 시 무시
-        });
+        .catch(() => {});
     };
 
-    // 첫 호출
     updateData();
-    // 1분마다 업데이트
     const iv = setInterval(updateData, 60000);
     return () => {
       mounted = false;
@@ -99,7 +87,6 @@ export function RoomList() {
     };
   }, []);
 
-  // --- 시각화 계산 ---
   const maxPower = 2000; // W
   // 실시간 전력 백분율
   const instantPercent = Math.min(power513 / maxPower, 1) * 100;
@@ -180,18 +167,7 @@ export function RoomList() {
                 </div>
               </div>
 
-              {/* 2) 누적 에너지 (숫자만 표시) */}
-              <div className="flex justify-between items-center px-1">
-                <span className="text-[#222] font-medium text-base">
-                  총 누적 에너지
-                </span>
-                <span className="text-[#0097FF] font-bold text-lg">
-                  {totalEnergy513.toFixed(0)}{" "}
-                  <span className="text-black">Wh</span>
-                </span>
-              </div>
-
-              {/* 3) 전날 대비 에너지 증가량 (API에서 값이 없거나 0이면 숨김) */}
+              {/* 2) 전날 대비 에너지 증가량 (API에서 값이 없거나 0이면 숨김) */}
               {yesterdayEnergy513 !== null && yesterdayEnergy513 > 0 && (
                 <div className="w-full flex flex-col">
                   <div className="flex justify-start items-center mb-1 px-1 gap-2">
@@ -221,6 +197,17 @@ export function RoomList() {
                   </div>
                 </div>
               )}
+
+              {/* 3) 누적 에너지 (숫자만 표시) */}
+              <div className="flex justify-between items-center px-1">
+                <span className="text-[#222] font-medium text-base">
+                  총 누적 에너지
+                </span>
+                <span className="text-[#0097FF] font-bold text-lg">
+                  {totalEnergy513.toFixed(0)}{" "}
+                  <span className="text-black">Wh</span>
+                </span>
+              </div>
             </div>
           )}
         </button>

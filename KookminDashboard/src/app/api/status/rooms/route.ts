@@ -2,8 +2,8 @@ import { NextResponse, NextRequest } from "next/server";
 import { FALLBACK_ROOMS } from "@/lib/sampleData";
 import { ROOM_STREAMS } from "@/lib/streamSetting";
 
-const MODEL_URN = process.env.NEXT_PUBLIC_MODEL_URN as string;
-const USE_TANDEM = process.env.NEXT_PUBLIC_TANDEM_ENABLED === "true";
+const MODEL_URN = process.env.NEXT_PUBLIC_FACILITY_URN as string;
+const USE_TANDEM = process.env.NEXT_PUBLIC_TANDEM_STREAM_ENABLED === "true";
 
 async function fetchAllPoints(
   streamId: string,

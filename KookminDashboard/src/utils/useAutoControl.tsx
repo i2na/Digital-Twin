@@ -55,7 +55,7 @@ export const useAutoControl = create<AutoRemoteState>((set, get) => ({
 
   // 자동제어 시작
   startAuto: async (T, RH, setpoint) => {
-    if (process.env.NEXT_PUBLIC_AUTO_CONTROL_ENABLE !== "true") {
+    if (process.env.NEXT_PUBLIC_AUTO_CONTROL_ENABLED !== "true") {
       toast.error("자동 제어가 비활성화되어 있습니다.");
       return;
     }
