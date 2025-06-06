@@ -76,7 +76,7 @@ def auto_control(T, RH, state_now):
 
 불쾌지수(DI)에 따라 실내 공간의 상태를 색상으로 시각화한 히트맵을 제공합니다. 쾌적한 공간은 시원한 블루-그린 계열로, 불쾌한 공간은 따뜻한 옐로-레드 계열로 표현되어 즉각적인 시각적 판단이 가능합니다.
 <div align="left">
-  <img alt="image" src="https://github.com/user-attachments/assets/f1b15ebe-fe5f-4280-80ea-cc104f839397" width="44%"/>
+  <img alt="image" src="https://github.com/user-attachments/assets/2a239233-1695-474f-a021-0be53653d78b" width="44%"/>
 </div>
 
 ### 4. 에어컨 리모컨
