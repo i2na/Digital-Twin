@@ -13,13 +13,13 @@ export function DICard({ di, loading }: DICardProps) {
   const status = interpretDI(di);
   const showWarning = di >= 72;
 
-  let gaugeColor = "#00F0FF";
+  let gaugeColor = "#4FC3F7";
 
-  if (di < 65) gaugeColor = "#00F0FF";
-  else if (di < 70) gaugeColor = "#00FFA3";
-  else if (di < 75) gaugeColor = "#FFD700";
-  else if (di < 80) gaugeColor = "#FF6F61";
-  else gaugeColor = "#FF3D00";
+  if (di < 65) gaugeColor = "#4FC3F7";
+  else if (di < 70) gaugeColor = "#4DD0E1";
+  else if (di < 75) gaugeColor = "#81C784";
+  else if (di < 80) gaugeColor = "#FFB74D";
+  else gaugeColor = "#E57373";
 
   return (
     <div className="bg-white rounded-lg shadow-block p-4">

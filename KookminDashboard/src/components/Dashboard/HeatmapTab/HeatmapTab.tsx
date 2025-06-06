@@ -25,17 +25,17 @@ export function HeatmapTab() {
     Object.keys(ROOM_DBIDS).forEach((key) => {
       const roomNum = Number(key);
       const roomInfo = roomsLatest[roomNum];
-      let colorHex = "#00F0FF";
+      let colorHex = "#4FC3F7";
       if (roomInfo) {
         const di = calculateDiscomfortIndex(
           roomInfo.temperature,
           roomInfo.humidity
         );
-        if (di < 65) colorHex = "#00F0FF";
-        else if (di < 70) colorHex = "#00FFA3";
-        else if (di < 75) colorHex = "#FFD700";
-        else if (di < 80) colorHex = "#FF6F61";
-        else colorHex = "#FF3D00";
+        if (di < 65) colorHex = "#4FC3F7";
+        else if (di < 70) colorHex = "#4DD0E1";
+        else if (di < 75) colorHex = "#81C784";
+        else if (di < 80) colorHex = "#FFB74D";
+        else colorHex = "#E57373";
       }
       const hex = colorHex.replace("#", "");
       const r = parseInt(hex.substring(0, 2), 16) / 255;
@@ -60,7 +60,7 @@ export function HeatmapTab() {
       );
       DEFAULT_DBIDS.forEach((dbId) => {
         viewer.impl.visibilityManager.show(dbId, viewer.model);
-        viewer.setThemingColor(dbId, baseVec, viewer.model, true);
+        // viewer.setThemingColor(dbId, baseVec, viewer.model, true);
       });
     }
 

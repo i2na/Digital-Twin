@@ -55,7 +55,16 @@ export const useAutoControl = create<AutoRemoteState>((set, get) => ({
 
   // 자동제어 시작
   startAuto: async (T, RH, setpoint) => {
-    if (process.env.NEXT_PUBLIC_AUTO_CONTROL_ENABLED !== "true") {
+    const isAirconEnabled = process.env.NEXT_PUBLIC_AIRCON_ENABLED === "true";
+    const isAutoControlEnabled =
+      process.env.NEXT_PUBLIC_AUTO_CONTROL_ENABLED === "true";
+
+    if (!isAirconEnabled) {
+      toast.error("에어컨 기능이 비활성화되어 있습니다.");
+      return;
+    }
+
+    if (!isAutoControlEnabled) {
       toast.error("자동 제어가 비활성화되어 있습니다.");
       return;
     }
