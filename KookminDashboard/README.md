@@ -83,8 +83,8 @@ def auto_control(T, RH, state_now):
 
 웹 대시보드에서 에어컨을 수동으로 제어할 수 있습니다. 각 실별 현재 상태 확인 및 제어 명령 전송이 가능합니다. 또한 분석 리포트 탭에서 공간의 DI가 높을 경우, 자동 제어 알고리즘을 통해 해당 공간의 에어컨을 자동으로 제어할 수 있습니다.
 <div align="left">
-  <img alt="image" src="https://github.com/user-attachments/assets/77754fc3-d7d8-4054-b853-f7c9424f945c" width="30%"/>
-  <img alt="image" src="https://github.com/user-attachments/assets/f35217b2-ef53-4068-8852-76194f6d4dc2" width="30%"/>
+  <img alt="image" src="https://github.com/user-attachments/assets/38a69667-7f8e-4314-a155-ec3d2287951e" width="26.25%"/>
+  <img alt="image" src="https://github.com/user-attachments/assets/8a91c72d-44d4-432d-a859-14131866b354" width="25%"/>
 </div>
 
 ## Local
