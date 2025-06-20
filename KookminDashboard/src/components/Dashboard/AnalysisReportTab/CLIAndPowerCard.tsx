@@ -47,7 +47,7 @@ export function CLIAndPowerCard({
             <p className="text-lg font-bold text-gray-700">({status})</p>
           </div>
 
-          <div className="mt-2 text-xs text-[#8E8E8E] leading-relaxed text-end">
+          <div className="mt-2 text-[10px] text-[#8E8E8E] leading-relaxed text-end">
             {legend.map((line, idx) => (
               <React.Fragment key={idx}>
                 {line}

@@ -41,7 +41,7 @@ export default function Dashboard() {
         initial={{ height: "100%" }}
         animate={{ height: collapsed ? "63.75px" : "100%" }}
         transition={{ duration: 0.35, ease: "easeInOut" }}
-        className="pointer-events-auto w-[340px] flex flex-col rounded-xl glass-block overflow-hidden"
+        className="pointer-events-auto w-[280px] flex flex-col rounded-xl glass-block overflow-hidden"
       >
         <div className="flex items-center justify-between p-3">
           <div className="flex items-center space-x-3">

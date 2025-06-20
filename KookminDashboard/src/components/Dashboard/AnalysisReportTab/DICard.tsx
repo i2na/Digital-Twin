@@ -11,7 +11,7 @@ interface DICardProps {
 
 export function DICard({ di, loading }: DICardProps) {
   const status = interpretDI(di);
-  const showWarning = di >= 72;
+  const showWarning = di >= 75;
 
   let gaugeColor = "#4FC3F7";
 
@@ -39,7 +39,7 @@ export function DICard({ di, loading }: DICardProps) {
           <div className="absolute inset-0 flex flex-col items-center justify-end pointer-events-none">
             {!loading && (
               <>
-                <p className="text-[20px] font-bold text-gray-900">{status}</p>
+                <p className="text-[17px] font-bold text-gray-900">{status}</p>
                 <p className="text-[15px] text-gray-700">
                   <AnimatedValue value={di} />
                 </p>
@@ -48,7 +48,7 @@ export function DICard({ di, loading }: DICardProps) {
           </div>
         </div>
 
-        <div className="text-xs text-[#8E8E8E] leading-relaxed text-start">
+        <div className="text-[10px] text-[#8E8E8E] leading-relaxed text-start">
           ~64: 매우 쾌적
           <br />
           65~69: 쾌적

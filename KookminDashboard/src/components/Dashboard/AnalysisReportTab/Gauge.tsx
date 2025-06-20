@@ -8,7 +8,7 @@ interface GaugeProps {
 }
 
 export function Gauge({ percent, color, loading = false }: GaugeProps) {
-  const radius = 70;
+  const radius = 63;
   const centerX = 70;
   const centerY = 80;
   const circumference = Math.PI * radius;
@@ -28,7 +28,7 @@ export function Gauge({ percent, color, loading = false }: GaugeProps) {
   }, [percent, motionPercent]);
 
   return (
-    <svg width="160" height="80" viewBox="0 0 140 80">
+    <svg width="135" height="80" viewBox="0 0 140 80">
       <motion.path
         d={`
           M ${centerX - radius} ${centerY}

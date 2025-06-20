@@ -16,7 +16,6 @@ async function fetchAllPoints(
   );
   if (!res.ok) return { times: [], values: [] };
   const data = (await res.json()) as Record<string, Record<string, number>>;
-
   const entries = data[property] || {};
   const times = Object.keys(entries)
     .map((ts) => Number(ts))
@@ -36,7 +35,6 @@ export async function GET(req: NextRequest) {
   if (!MODEL_URN) {
     return NextResponse.json({ error: "Missing URN" }, { status: 400 });
   }
-
   const roomsLatest: Record<
     string,
     {
@@ -53,10 +51,9 @@ export async function GET(req: NextRequest) {
       occupancy?: Array<{ time: string; value: number }>;
     }
   > = {};
-
   for (const [
     room,
-    { streamId, tempProp, humProp, occupancyProp },
+    { streamId, occupancyStreamId, tempProp, humProp, occupancyProp },
   ] of Object.entries(ROOM_STREAMS)) {
     const { times: tTimes, values: tVals } = await fetchAllPoints(
       streamId,
@@ -68,24 +65,24 @@ export async function GET(req: NextRequest) {
       humProp,
       token
     );
-
     let occVal: number | null = null;
     let oTimes: number[] = [];
     let oVals: number[] = [];
-
-    if (occupancyProp) {
-      const oResult = await fetchAllPoints(streamId, occupancyProp, token);
+    if (occupancyProp && occupancyStreamId) {
+      const oResult = await fetchAllPoints(
+        occupancyStreamId,
+        occupancyProp,
+        token
+      );
       oTimes = oResult.times;
       oVals = oResult.values;
       occVal = oVals.length ? oVals[oVals.length - 1] : null;
     }
-
     roomsLatest[room] = {
       temperature: tVals.length ? tVals[tVals.length - 1] : null,
       humidity: hVals.length ? hVals[hVals.length - 1] : null,
-      ...(occupancyProp ? { occupancy: occVal } : {}),
+      ...(occupancyProp && occupancyStreamId ? { occupancy: occVal } : {}),
     };
-
     roomsHistory[room] = {
       temperature: tTimes.map((ts, i) => ({
         time: new Date(ts).toLocaleTimeString("ko-KR", {
@@ -105,7 +102,7 @@ export async function GET(req: NextRequest) {
         }),
         value: hVals[i],
       })),
-      ...(occupancyProp
+      ...(occupancyProp && occupancyStreamId
         ? {
             occupancy: oTimes.map((ts, i) => ({
               time: new Date(ts).toLocaleTimeString("ko-KR", {
@@ -120,6 +117,5 @@ export async function GET(req: NextRequest) {
         : {}),
     };
   }
-
   return NextResponse.json({ rooms: roomsLatest, history: roomsHistory });
 }

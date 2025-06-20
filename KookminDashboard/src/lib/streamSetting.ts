@@ -10,6 +10,7 @@ export const AC_PROPERTIES: Record<string, string> = {
   supportedMode_AC_1: "z:CA",
   power_AC_1: "z:Ag",
   energy_AC_1: "z:Bw",
+  yesterday_energy_AC_1: "z:Fw",
 };
 
 // /api/status/rooms
@@ -17,6 +18,7 @@ export const ROOM_STREAMS: Record<
   string,
   {
     streamId: string;
+    occupancyStreamId?: string;
     tempProp: string;
     humProp: string;
     occupancyProp?: string;
@@ -24,9 +26,10 @@ export const ROOM_STREAMS: Record<
 > = {
   513: {
     streamId: "AQAAADZmZGEyZTYxLTFmNTUtNDgAAAAA",
+    occupancyStreamId: "AQAAADg3ZmQwY2RkLTNkZDUtNDUAAAAA",
     tempProp: "z:DQ",
     humProp: "z:Cg",
-    occupancyProp: "z:11",
+    occupancyProp: "z:BA",
   },
   516: {
     streamId: "AQAAAGRlMjc2NzlmLWYyOWUtNDYAAAAA",

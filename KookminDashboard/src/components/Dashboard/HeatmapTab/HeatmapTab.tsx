@@ -122,7 +122,7 @@ export function HeatmapTab() {
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: "12px",
+        gap: "5px",
         padding: "8px",
       }}
     >

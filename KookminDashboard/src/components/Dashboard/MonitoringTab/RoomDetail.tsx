@@ -171,7 +171,7 @@ const TempChart = memo(function TempChart({ tempData }: { tempData: Point[] }) {
             dataKey="time"
             height={15}
             stroke="#8884d8"
-            startIndex={Math.max(0, tempData.length - 120)}
+            startIndex={Math.max(0, tempData.length - 800)}
             endIndex={tempData.length - 1}
           />
         )}
@@ -249,7 +249,7 @@ const HumChart = memo(function HumChart({ humData }: { humData: Point[] }) {
             dataKey="time"
             height={15}
             stroke="#0EA5E9"
-            startIndex={Math.max(0, humData.length - 120)}
+            startIndex={Math.max(0, humData.length - 800)}
             endIndex={humData.length - 1}
           />
         )}

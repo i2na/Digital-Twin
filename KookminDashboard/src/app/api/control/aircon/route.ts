@@ -50,8 +50,7 @@ export async function POST(req: NextRequest) {
   });
 
   // 3) 팬 모드: setFanMode (대소문자 주의)
-  //    user가 "auto"를 보냈다면 "Auto"로 변환, 숫자는 그대로 사용
-  const fanArg = body.fanMode === "auto" ? "Auto" : body.fanMode; // "1", "2", "max" 등은 그대로
+  const fanArg = body.fanMode === "auto" ? "Auto" : body.fanMode;
   commands.push({
     component: "main",
     capability: "airConditionerFanMode",
@@ -74,6 +73,8 @@ export async function POST(req: NextRequest) {
     command: "setAcOptionalMode",
     arguments: [body.optionalMode],
   });
+
+  console.log("commands", commands);
 
   try {
     const res = await fetch(

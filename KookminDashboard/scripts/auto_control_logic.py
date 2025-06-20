@@ -89,9 +89,10 @@ def auto_control(
         mode     = "dry"
 
     # ─ 5. 팬세기 간단 매핑 ───────────────────
-    if   ΔT >= 3:  fan = "max"
-    elif ΔT >= 2:  fan = "4"
-    elif ΔT >= 1:  fan = "3"
+    if   ΔT >= 3:  fan = "4"
+    elif ΔT >= 2:  fan = "3"
+    elif ΔT >= 1:  fan = "2"
+    elif ΔT >  0:  fan = "1"
     else:          fan = "auto"
 
     # ─ 6. 결과 리턴 ───────────────────────────

@@ -26,10 +26,10 @@ const acModeMap: Record<(typeof acModeOptions)[number], string> = {
 const fanModeOptions = ["auto", "1", "2", "3", "4", "max"] as const;
 const fanModeMap: Record<(typeof fanModeOptions)[number], string> = {
   auto: "자동",
-  "1": "약풍",
-  "2": "미풍",
-  "3": "중풍",
-  "4": "강풍",
+  "1": "1단계",
+  "2": "2단계",
+  "3": "3단계",
+  "4": "4단계",
   max: "최대풍",
 };
 
@@ -164,6 +164,7 @@ export default function Remote({
           <div
             style={{
               fontWeight: "900",
+              fontSize: "11px",
               display: "flex",
               justifyContent: "center",
               gap: "2px",

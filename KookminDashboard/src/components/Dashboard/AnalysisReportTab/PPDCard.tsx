@@ -60,7 +60,7 @@ export function PPDCard({ ppd, pmv, loading }: PPDCardProps) {
               </motion.div>
             ) : (
               <>
-                <p className="text-[20px] font-bold text-gray-900">{status}</p>
+                <p className="text-[17px] font-bold text-gray-900">{status}</p>
                 <p className="text-[15px] text-gray-700">
                   <AnimatedValue value={ppd} suffix="%" />
                 </p>
@@ -69,7 +69,7 @@ export function PPDCard({ ppd, pmv, loading }: PPDCardProps) {
           </div>
         </div>
 
-        <div className="text-xs text-[#8E8E8E] leading-relaxed text-start">
+        <div className="text-[10px] text-[#8E8E8E] leading-relaxed text-start">
           0~10%: 쾌적
           <br />
           10~24%: 약간 불만
