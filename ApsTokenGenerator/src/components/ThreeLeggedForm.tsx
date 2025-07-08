@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { FiCopy, FiLoader } from "react-icons/fi";
 
+const STORAGE_KEY = "apsCreds";
+
 export default function ThreeLeggedForm({
   onTokenSet,
 }: {
@@ -50,7 +52,24 @@ export default function ThreeLeggedForm({
       `&state=${state}`,
     ].join("");
     window.location.href = url;
+
+    try {
+      if (creds.client_id || creds.client_secret)
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(creds));
+      else localStorage.removeItem(STORAGE_KEY);
+    } catch (err) {
+      console.error("ThreeLeggedForm :: creds save :", err);
+    }
   };
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) setCreds(JSON.parse(saved));
+    } catch (err) {
+      console.error("ThreeLeggedForm :: creds read :", err);
+    }
+  }, []);
 
   useEffect(() => {
     if (!code || !state) return;

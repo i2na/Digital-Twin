@@ -37,3 +37,9 @@ declare interface Token {
   access_token: string;
   expires_in: number;
 }
+
+// components/TwoLeggedForm & components/ThreeLeggedForm
+declare interface Creds {
+  client_id: string;
+  client_secret: string;
+}

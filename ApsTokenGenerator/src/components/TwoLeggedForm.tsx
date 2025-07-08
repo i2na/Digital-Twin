@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { FiCopy, FiLoader, FiEye } from "react-icons/fi";
 
+const STORAGE_KEY = "apsCreds";
+
 export default function TwoLeggedForm({
   onTokenSet,
 }: {
@@ -43,6 +45,14 @@ export default function TwoLeggedForm({
       alert("문제가 발생하였습니다. 다시 시도해주세요.");
     } finally {
       setLoading((s) => ({ ...s, auth: false }));
+    }
+
+    try {
+      if (creds.client_id || creds.client_secret)
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(creds));
+      else localStorage.removeItem(STORAGE_KEY);
+    } catch (err) {
+      console.error("TwoLeggedForm :: creds save :", err);
     }
   }, [creds, onTokenSet]);
 
@@ -178,6 +188,15 @@ export default function TwoLeggedForm({
       setLoading((s) => ({ ...s, upload: false, translating: false }));
     }
   };
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) setCreds(JSON.parse(saved));
+    } catch (err) {
+      console.error("TwoLeggedForm :: creds read :", err);
+    }
+  }, []);
 
   useEffect(() => {
     if (!token) return;
