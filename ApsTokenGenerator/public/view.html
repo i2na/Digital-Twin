@@ -1,83 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Forge Viewer</title>
-    <link
-      rel="stylesheet"
-      href="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css"
-    />
-    <link rel="stylesheet" href="./view.css" />
-  </head>
-  <body>
-    <div id="viewer"></div>
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Forge Viewer</title>
+        <link
+            rel="stylesheet"
+            href="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css"
+        />
+        <link rel="stylesheet" href="./view.css" />
+    </head>
+    <body>
+        <div id="viewer"></div>
 
-    <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.min.js"></script>
-    <script>
-      window.addEventListener("DOMContentLoaded", function () {
-        const params = new URLSearchParams(window.location.search);
-        let urn = params.get("urn");
-        const token = params.get("token");
+        <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/three@0.155/examples/js/lines/Line2.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/three@0.155/examples/js/lines/LineGeometry.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/three@0.155/examples/js/lines/LineMaterial.js"></script>
+        <script src="./js/WalkingPathToolExtension.js"></script>
+        <script src="./js/WeatherEffectExtension.js"></script>
+        <script>
+            window.addEventListener("DOMContentLoaded", function () {
+                const params = new URLSearchParams(window.location.search);
+                let urn = params.get("urn");
+                const token = params.get("token");
 
-        if (!urn || !token) {
-          alert("Missing URN or access token.");
-          return;
-        }
+                if (!urn || !token) {
+                    alert("Missing URN or access token.");
+                    return;
+                }
 
-        if (!urn.toLowerCase().startsWith("urn:")) {
-          urn = "urn:" + urn;
-        }
+                if (!urn.toLowerCase().startsWith("urn:")) {
+                    urn = "urn:" + urn;
+                }
 
-        // Access token provider for Viewer
-        function getAccessToken(onSuccess) {
-          onSuccess(token, 3600);
-        }
+                function getAccessToken(onSuccess) {
+                    onSuccess(token, 3600);
+                }
 
-        const options = {
-          env: "AutodeskProduction",
-          getAccessToken: getAccessToken,
-        };
+                const options = {
+                    env: "AutodeskProduction",
+                    getAccessToken: getAccessToken,
+                };
 
-        Autodesk.Viewing.Initializer(options, function () {
-          const viewerDiv = document.getElementById("viewer");
-          const viewer = new Autodesk.Viewing.GuiViewer3D(viewerDiv, {
-            extensions: ["Autodesk.DocumentBrowser"],
-          });
-          viewer.start();
+                Autodesk.Viewing.Initializer(options, function () {
+                    const viewerDiv = document.getElementById("viewer");
+                    const viewer = new Autodesk.Viewing.GuiViewer3D(viewerDiv, {
+                        extensions: ["Autodesk.DocumentBrowser"],
+                    });
+                    viewer.start();
 
-          Autodesk.Viewing.Document.load(
-            urn,
-            function (doc) {
-              const defaultModel = doc.getRoot().getDefaultGeometry();
-              viewer
-                .loadDocumentNode(doc, defaultModel)
-                .then(() => {
-                  console.log("Model loaded successfully.");
-                })
-                .catch((err) => {
-                  console.error("Error loading model node:", err);
-                  alert("Failed to load model. Check console for details.");
+                    Autodesk.Viewing.Document.load(
+                        urn,
+                        function (doc) {
+                            const defaultModel = doc.getRoot().getDefaultGeometry();
+                            viewer
+                                .loadDocumentNode(doc, defaultModel)
+                                .then(() => {
+                                    console.log("Model loaded successfully.");
+                                    viewer.loadExtension("WeatherEffect").then(() => {
+                                        console.log("WeatherEffect loaded");
+                                        const btns = document.createElement("div");
+                                        btns.innerHTML = `
+                    <button id="snowBtn" style="position:absolute;top:10px;left:10px;z-index:1;">Toggle Snow</button>
+                    <button id="rainBtn" style="position:absolute;top:40px;left:10px;z-index:1;">Toggle Rain</button>
+                  `;
+                                        document.body.appendChild(btns);
+                                        const ext = viewer.getExtension("WeatherEffect");
+                                        document
+                                            .getElementById("snowBtn")
+                                            .addEventListener("click", () => {
+                                                ext.snowActive ? ext.stopSnow() : ext.startSnow();
+                                            });
+                                        document
+                                            .getElementById("rainBtn")
+                                            .addEventListener("click", () => {
+                                                ext.rainActive ? ext.stopRain() : ext.startRain();
+                                            });
+                                    });
+                                })
+                                .catch((err) => {
+                                    console.error("Error loading model node:", err);
+                                    alert("Failed to load model. Check console for details.");
+                                });
+                            viewer
+                                .loadExtension("Autodesk.ADN.WalkingPathToolExtension")
+                                .then(() => {
+                                    console.log("WalkingPathToolExtension ready");
+                                });
+                        },
+                        function (errorCode, errorMessage) {
+                            console.error("Viewer error " + errorCode + ": " + errorMessage);
+                            alert("Error loading document: " + errorMessage);
+                        }
+                    );
                 });
-              viewer
-                .loadExtension("Autodesk.ADN.WalkingPathToolExtension")
-                .then(() => {
-                  console.log("WalkingPathToolExtension ready");
-                });
-            },
-            function (errorCode, errorMessage) {
-              console.error("Viewer error " + errorCode + ": " + errorMessage);
-              alert("Error loading document: " + errorMessage);
-            }
-          );
-        });
-      });
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.155/examples/js/lines/Line2.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.155/examples/js/lines/LineGeometry.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.155/examples/js/lines/LineMaterial.js"></script>
-    <script src="./js/WalkingPathToolExtension.js"></script>
-  </body>
+            });
+        </script>
+    </body>
 </html>
