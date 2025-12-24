@@ -1,4 +1,5 @@
 # StepLED
+### [Demo.mp4](https://pub-80a42cc7d41749078071917a4265d3ca.r2.dev/StepLED.mp4)
 ![image](https://github.com/user-attachments/assets/568e615d-b8c2-4a11-9fa5-dd01503a4e3c)
 
 ESP32 보드에 연결된 세 개의 LED를 스위치로 순차 제어하며, 이를 Autodesk Tandem에서 실시간으로 모니터링하고 Autodesk Forge Viewer 기반 가상 모델에서 제어할 수 있는 양방향 디지털 트윈 프로젝트입니다.
@@ -42,14 +43,3 @@ npm run dev
 
 3. 웹 접속  
    `http://localhost:3000`
-
-## 📝 앞으로의 개선 방향
-
-- Polling 방식 → WebSocket / MQTT 이벤트 기반 통신으로 전환
-
-## 📷 시연 이미지
-<div align="left">
-  <img alt="image" src="https://github.com/user-attachments/assets/d31aec71-2bd1-4e65-baf5-63bdc32da4be" width="35%"/>
-</div>
-
-[시연 동영상](https://pub-80a42cc7d41749078071917a4265d3ca.r2.dev/StepLED.mp4)
