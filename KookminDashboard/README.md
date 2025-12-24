@@ -1,11 +1,13 @@
 # KookminDashboard
-
+#### [Demo.mp4](https://pub-80a42cc7d41749078071917a4265d3ca.r2.dev/KookminDashboard1.mp4)
 ### 국민대학교 미래관 5층 에너지 모니터링 및 제어 대시보드
 
 <div align="center">
   <img alt="image" src="https://github.com/user-attachments/assets/4ab788b6-2de4-4574-8c0f-0078a256e47d" width="44%"/>
   <img alt="image" src="https://github.com/user-attachments/assets/fb709330-10c6-4002-a6f2-0b651a9feb16" width="44%"/>
 </div>
+
+
 
 ## 시스템 구성
 
